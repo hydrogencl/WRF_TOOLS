@@ -1,4 +1,64 @@
 #!/usr/bin/python
+import math, re, os
+
+class TOOLS:
+    def run_time_cal(ARR_TIME_IN, IF_LEAP=False, NUM_MON=0):
+        if IF_LEAP == True: 
+            ARR_DAY_LIM = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366]
+        else:
+            ARR_DAY_LIM = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365]
+        if NUM_MON == 0:
+            DAYS    = ARR_TIME_IN[0] * sum(ARR_DAY_LIM) + ARR_DAY_LIM[ ARR_TIME_IN[1] ] + ARR_TIME_IN[2]
+        else:
+            DAYS    = ARR_TIME_IN[0] * sum(ARR_DAY_LIM) + ARR_TIME_IN[1] * NUM_MON + ARR_TIME_IN[2]
+        HOURS   = DAYS * 24 + ARR_TIME_IN[3]
+        MINUTES = HOURS * 60 + ARR_TIME_IN[4] 
+        return {"DAYS": DAYS, "HOURS": HOURS, "MINUTES": MINUTES }
+
+    def calendar_cal(ARR_START_TIME, ARR_INTERVAL, ARR_END_TIME_IN=[0, 0, 0, 0, 0, 0.0], IF_LEAP=False):
+        """Calculaing the Data and Time base on the intervals 
+           Input: ARR_START_TIME=[ %d %d %d %d %d %d ] 
+                  ARR_INTERAL=   [ %d %d %d %d %d %d ]         """
+        ARR_END_TIME  = [ 0,0,0,0,0,0.0]
+        ARR_DATETIME  = ["SECOND", "MINUTE", "HOUR","DAY", "MON", "YEAR"]
+        NUM_ARR_DATETIME = len(ARR_DATETIME)
+        IF_FERTIG = False
+        ARR_FERTIG = [0,0,0,0,0,0]
+        DIC_TIME_LIM = \
+        {"YEAR"  : {"START": 0 , "LIMIT": 9999 },\
+         "MON"   : {"START": 1 , "LIMIT": 12 },\
+         "DAY"   : {"START": 1 , "LIMIT": 31 },\
+         "HOUR"  : {"START": 0 , "LIMIT": 23 },\
+         "MINUTE": {"START": 0 , "LIMIT": 59 },\
+         "SECOND": {"START": 0 , "LIMIT": 59 },\
+        }
+        for I, T in enumerate(ARR_START_TIME):
+            ARR_END_TIME[I] = T + ARR_INTERVAL[I]
+        while IF_FERTIG == False:
+            if math.fmod(ARR_END_TIME[0],4) == 0: IF_LEAP=True
+            if IF_LEAP:
+                ARR_DAY_LIM = [0,31,29,31,30,31,30,31,31,30,31,30,31]
+            else:
+                ARR_DAY_LIM = [0,31,28,31,30,31,30,31,31,30,31,30,31]
+            for I, ITEM in enumerate(ARR_DATETIME):
+                NUM_ARR_POS = NUM_ARR_DATETIME-I-1
+                if ITEM == "DAY":
+                    if ARR_END_TIME[NUM_ARR_POS] > ARR_DAY_LIM[ARR_END_TIME[1]]:
+                        ARR_END_TIME[NUM_ARR_POS] = ARR_END_TIME[NUM_ARR_POS] - ARR_DAY_LIM[ARR_END_TIME[1]]
+                        ARR_END_TIME[NUM_ARR_POS - 1] += 1
+                else:
+                    if ARR_END_TIME[NUM_ARR_POS] > DIC_TIME_LIM[ITEM]["LIMIT"]:
+                        ARR_END_TIME[NUM_ARR_POS - 1] += 1
+                        ARR_END_TIME[NUM_ARR_POS] = ARR_END_TIME[NUM_ARR_POS] - DIC_TIME_LIM[ITEM]["LIMIT"] - 1
+            for I, ITEM in enumerate(ARR_DATETIME):
+                NUM_ARR_POS = NUM_ARR_DATETIME-I-1
+                if ITEM == "DAY":
+                    if ARR_END_TIME[NUM_ARR_POS] <= ARR_DAY_LIM[ARR_END_TIME[1]]: ARR_FERTIG[NUM_ARR_POS] = 1
+                else:
+                    if ARR_END_TIME[NUM_ARR_POS] <= DIC_TIME_LIM[ITEM]["LIMIT"]:  ARR_FERTIG[NUM_ARR_POS] = 1
+                if sum(ARR_FERTIG) == 6: IF_FERTIG = True
+        return ARR_END_TIME
+
 
 class namelist_checker:
     DIC_BL_PBL_PHYSICS = {\
@@ -141,13 +201,13 @@ class namelist_creater:
         # ENSEMBLE SETTING UP
         self.IF_SPPT  = False
         self.IF_SKEBS = False
+        self.STR_connect_symbol = "_"
 
         # FILENAME
 
         #self.NUM_MAX_DOM  = NUM_MAX_DOM
         self.STR_namelist = STR_namelist
         self.STR_DIR      = STR_DIR
-
 
         self.ARR_time_control = ['run_days', 'run_hours', 'run_minutes', 'run_seconds', 'start_year', 'start_month', 'start_day', 'start_hour', 'start_minute', 'start_second', 'end_year', 'end_month', 'end_day', 'end_hour', 'end_minute', 'end_second', 'interval_seconds', 'input_from_file', 'history_interval', 'history_outname', 'bdy_inname', 'input_inname', 'frames_per_outfile', 'auxhist1_outname', 'auxhist2_outname', 'auxhist1_interval', 'auxhist2_interval', 'frames_per_auxhist1', 'frames_per_auxhist2', 'aux1_time', 'aux2_time', 'interpolation_time', 'interpolation_number', 'restart', 'restart_interval', 'override_restart_timers', 'io_form_history', 'io_form_restart', 'io_form_input', 'io_form_boundary', 'debug_level', 'io_form_auxinput2', 'io_form_auxhist1', 'io_form_auxhist2', 'auxinput1_inname']
 
@@ -187,14 +247,14 @@ class namelist_creater:
         "interval_seconds"                 : { "VALUE":  10800       , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
         "input_from_file"                  : { "VALUE":  True        , "DATA_TYPE" : "BLN" , "ARR_TYPE" :"M"},
         "history_interval"                 : { "VALUE":  60          , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
-        "history_outname"                  : { "VALUE":  'wrfout'      , "DATA_TYPE" : "STR" , "ARR_TYPE" :"S", "STR_FMT" : "\'{0:s}_d<domain>_{1:05d}\',"},
-        "bdy_inname"                       : { "VALUE":  'wrfbdy'      , "DATA_TYPE" : "STR" , "ARR_TYPE" :"S", "STR_FMT" : "\'{0:s}{1:05d}_d<domain>\',"},
-        "input_inname"                     : { "VALUE":  'wrfinput'    , "DATA_TYPE" : "STR" , "ARR_TYPE" :"S", "STR_FMT" : "\'{0:s}{1:05d}_d<domain>\',"},
-        "rst_outname"                      : { "VALUE":  'wrfrst'      , "DATA_TYPE" : "STR" , "ARR_TYPE" :"S", "STR_FMT" : "\'{0:s}_d<domain>_{1:05d}\',"},
-        "rst_inname"                       : { "VALUE":  'wrfrst'      , "DATA_TYPE" : "STR" , "ARR_TYPE" :"S", "STR_FMT" : "\'{0:s}_d<domain>_{1:05d}\',"},
+        "history_outname"                  : { "VALUE":  'wrfout'      , "DATA_TYPE" : "STR" , "ARR_TYPE" :"S", "STR_FMT" : "\'{0:s}_d<domain>{2:s}{1:s}\',"},
+        "bdy_inname"                       : { "VALUE":  'wrfbdy'      , "DATA_TYPE" : "STR" , "ARR_TYPE" :"S", "STR_FMT" : "\'{0:s}{1:s}_d<domain>\',"},
+        "input_inname"                     : { "VALUE":  'wrfinput'    , "DATA_TYPE" : "STR" , "ARR_TYPE" :"S", "STR_FMT" : "\'{0:s}{1:s}_d<domain>\',"},
+        "rst_outname"                      : { "VALUE":  'wrfrst'      , "DATA_TYPE" : "STR" , "ARR_TYPE" :"S", "STR_FMT" : "\'{0:s}_d<domain>{2:s}{1:s}\',"},
+        "rst_inname"                       : { "VALUE":  'wrfrst'      , "DATA_TYPE" : "STR" , "ARR_TYPE" :"S", "STR_FMT" : "\'{0:s}_d<domain>{2:s}{1:s}\',"},
         "frames_per_outfile"               : { "VALUE":  1000          , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
-        "auxhist1_outname"                 : { "VALUE":  'auxhist1'    , "DATA_TYPE" : "STR" , "ARR_TYPE" :"S", "STR_FMT" : "\'{0:s}_d<domain>_{1:05d}\',"},
-        "auxhist2_outname"                 : { "VALUE":  'meteofrance' , "DATA_TYPE" : "STR" , "ARR_TYPE" :"S", "STR_FMT" : "\'{0:s}_d<domain>_{1:05d}\',"},
+        "auxhist1_outname"                 : { "VALUE":  'auxhist1'    , "DATA_TYPE" : "STR" , "ARR_TYPE" :"S", "STR_FMT" : "\'{0:s}_d<domain>{2:s}{1:s}\',"},
+        "auxhist2_outname"                 : { "VALUE":  'meteofrance' , "DATA_TYPE" : "STR" , "ARR_TYPE" :"S", "STR_FMT" : "\'{0:s}_d<domain>{2:s}{1:s}\',"},
         "auxhist1_interval"                : { "VALUE":  15          , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
         "auxhist2_interval"                : { "VALUE":  60          , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
         "frames_per_auxhist1"              : { "VALUE":  1000        , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
@@ -214,7 +274,7 @@ class namelist_creater:
         "io_form_auxinput2"                : { "VALUE":  2           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
         "io_form_auxhist1"                 : { "VALUE":  2           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
         "io_form_auxhist2"                 : { "VALUE":  2           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
-        "auxinput1_inname"                 : { "VALUE":  'm'      , "DATA_TYPE" : "STR" , "ARR_TYPE" :"S", "STR_FMT" : "\'{0:s}{2:05d}.d<domain>.<date>\',"}}
+        "auxinput1_inname"                 : { "VALUE":  'm'      , "DATA_TYPE" : "STR" , "ARR_TYPE" :"S", "STR_FMT" : "\'{0:s}{2:s}.d<domain>.<date>\',"}}
 
         # Domain Common Parameters:
         self.DIC_domains_common_para= {\
@@ -337,6 +397,15 @@ class namelist_creater:
         else:
             ARR_end_time = ARR_end_time_in
 
+        # Checking Date and Time based on the intervals
+        ARR_END_DATE_CHK  = TOOLS.calendar_cal(ARR_start_time, ARR_run_time)
+
+        if TOOLS.run_time_cal(ARR_END_DATE_CHK) != TOOLS.run_time_cal(ARR_end_time):
+            ARR_end_time  = ARR_END_DATE_CHK
+            print("WARNING: The end date is not match with the interval time")
+            print("       : The end date is changed as:{0:04d}-{1:02d}-{2:02d}_{3:02d}:{4:02d}:{5:02d}".format(\
+                    ARR_end_time[0], ARR_end_time[1],ARR_end_time[2],ARR_end_time[3],ARR_end_time[4],ARR_end_time[5]))
+
         if NUM_MAX_DOM_in == 0 :
             NUM_MAX_DOM  = self.NUM_MAX_DOM 
         else:
@@ -392,7 +461,10 @@ class namelist_creater:
                 if DIC_in[ARR_item]["DATA_TYPE"] == "BLN":
                     self.FILE.write(DIC_DATA_TYPE_STR[DIC_in[ARR_item]["DATA_TYPE"]].format(self.BLN2WRFSTR(DIC_in[ARR_item]["VALUE"])))
                 elif DIC_in[ARR_item]["DATA_TYPE"] == "STR":
-                    self.FILE.write(DIC_in[ARR_item]["STR_FMT"].format(DIC_in[ARR_item]["VALUE"], self.NUM_ensemble_member, self.NUM_input_ensemble_member))
+                    if self.IF_ensemble_run:
+                        self.FILE.write(DIC_in[ARR_item]["STR_FMT"].format(DIC_in[ARR_item]["VALUE"], "{0:05d}".format(self.NUM_ensemble_member), self.STR_connect_symbol))
+                    else:
+                        self.FILE.write(DIC_in[ARR_item]["STR_FMT"].format(DIC_in[ARR_item]["VALUE"], ""              , ""))
                 else:
                     self.FILE.write(DIC_DATA_TYPE_STR[DIC_in[ARR_item]["DATA_TYPE"]].format(DIC_in[ARR_item]["VALUE"]))
             elif DIC_in[ARR_item]["ARR_TYPE"] == "M":
@@ -401,6 +473,7 @@ class namelist_creater:
                         self.FILE.write(DIC_DATA_TYPE_STR[DIC_in[ARR_item]["DATA_TYPE"]].format(self.BLN2WRFSTR(DIC_in[ARR_item]["VALUE"])))
                     else:
                         self.FILE.write(DIC_DATA_TYPE_STR[DIC_in[ARR_item]["DATA_TYPE"]].format(DIC_in[ARR_item]["VALUE"]))
+
             elif DIC_in[ARR_item]["ARR_TYPE"] == "P":
                 if len(self.DIC_user[ARR_item]["VALUE"]) == 1:
                     self.FILE.write(self.DIC_user[ARR_item]["STR_FMT"].format(self.DIC_user[ARR_item]["VALUE"][0]))
@@ -410,6 +483,7 @@ class namelist_creater:
                             self.FILE.write(self.DIC_user[ARR_item]["STR_FMT"].format(self.BLN2WRFSTR(self.DIC_user[ARR_item]["VALUE"][d])))
                         else:
                             self.FILE.write(self.DIC_user[ARR_item]["STR_FMT"].format(self.DIC_user[ARR_item]["VALUE"][d]))
+
             elif DIC_in[ARR_item]["ARR_TYPE"] == "A":
                 for d in range(self.NUM_MAX_DOM):
                     if DIC_in[ARR_item]["DATA_TYPE"] == "BLN":
