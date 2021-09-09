@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import math, re, os
 
-class TOOLS:
+class Tools:
     def run_time_cal(ARR_TIME_IN, IF_LEAP=False, NUM_MON=0):
         if IF_LEAP == True: 
             ARR_DAY_LIM = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366]
@@ -60,7 +60,7 @@ class TOOLS:
         return ARR_END_TIME
 
 
-class namelist_checker:
+class NamelistChecker:
     DIC_BL_PBL_PHYSICS = {\
         "1" : {"OPT": 1, "SCHEME": "YSU", "ARR_SFCLAY": [1], "REF": "Hong, Noh and Dudhia (2006, MWR)" },\
         "2" : {"OPT": 2, "SCHEME": "MYJ", "ARR_SFCLAY": [2], "REF":  "Janjic (1994, MWR)" },\
@@ -160,7 +160,7 @@ class namelist_checker:
 #        "" : {"OPT": , "SCHEME": "", "REF": "" },\
 #        "" : {"OPT": , "SCHEME": "", "REF": "" }}
 
-class namelist_creater:
+class NamelistCreater:
 
     # Important Parameters
     # Time control :
