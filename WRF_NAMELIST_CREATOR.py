@@ -161,7 +161,6 @@ class NamelistChecker:
 #        "" : {"OPT": , "SCHEME": "", "REF": "" }}
 
 class NamelistCreater:
-
     # Important Parameters
     # Time control :
     # Format: YYYY MM DD hh mm ss
@@ -398,9 +397,9 @@ class NamelistCreater:
             ARR_end_time = ARR_end_time_in
 
         # Checking Date and Time based on the intervals
-        ARR_END_DATE_CHK  = TOOLS.calendar_cal(ARR_start_time, ARR_run_time)
+        ARR_END_DATE_CHK  = Tools.calendar_cal(ARR_start_time, ARR_run_time)
 
-        if TOOLS.run_time_cal(ARR_END_DATE_CHK) != TOOLS.run_time_cal(ARR_end_time):
+        if Tools.run_time_cal(ARR_END_DATE_CHK) != Tools.run_time_cal(ARR_end_time):
             ARR_end_time  = ARR_END_DATE_CHK
             print("WARNING: The end date is not match with the interval time")
             print("       : The end date is changed as:{0:04d}-{1:02d}-{2:02d}_{3:02d}:{4:02d}:{5:02d}".format(\

@@ -1,7 +1,9 @@
 #!/usr/bin/python
 import WRF_NAMELIST_CREATOR as WNC
-from WRF_NAMELIST_CREATOR import namelist_checker as NLC
-NCC = WNC.namelist_creater("namelist.input", STR_DIR='./')
+from WRF_NAMELIST_CREATOR import NamelistChecker as NLC
+from WRF_NAMELIST_CREATOR import NamelistCreater as NameCrea
+
+NCC = NameCrea("namelist.input", STR_DIR='./')
 
 NCC.NUM_MAX_DOM     = 2
 
