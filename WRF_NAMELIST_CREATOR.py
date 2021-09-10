@@ -164,9 +164,9 @@ class NamelistCreater:
     # Important Parameters
     # Time control :
     # Format: YYYY MM DD hh mm ss
-    ARR_run_time       = [    0,  0,  0, 24,  0,  0 ]  
-    ARR_start_time     = [ 2015,  9, 21,  0,  0,  0 ]
-    ARR_end_time       = [ 2015,  9, 22,  0,  0,  0 ]
+    ARR_run_time       = [    0,  0,  0, 48,  0,  0 ]  
+    ARR_start_time     = [ 2008,  8,  8,  0,  0,  0 ]
+    ARR_end_time       = [ 2008,  8, 10,  0,  0,  0 ]
 
     # Domains:
     NUM_MAX_DOM               = 2
@@ -204,7 +204,6 @@ class NamelistCreater:
 
         # FILENAME
 
-        #self.NUM_MAX_DOM  = NUM_MAX_DOM
         self.STR_namelist = STR_namelist
         self.STR_DIR      = STR_DIR
 
@@ -273,7 +272,8 @@ class NamelistCreater:
         "io_form_auxinput2"                : { "VALUE":  2           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
         "io_form_auxhist1"                 : { "VALUE":  2           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
         "io_form_auxhist2"                 : { "VALUE":  2           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
-        "auxinput1_inname"                 : { "VALUE":  'm'      , "DATA_TYPE" : "STR" , "ARR_TYPE" :"S", "STR_FMT" : "\'{0:s}{2:s}.d<domain>.<date>\',"}}
+        "auxinput1_inname"                 : { "VALUE":  'met_em'    , "DATA_TYPE" : "STR" , "ARR_TYPE" :"S",\
+                                               "STR_FMT" : "\'{0:s}{2:s}.d<domain>.<date>\',"}}
 
         # Domain Common Parameters:
         self.DIC_domains_common_para= {\
@@ -456,17 +456,21 @@ class NamelistCreater:
         for ARR_item in ARR_in :
             self.FILE.write(" {0:s} = ".format(ARR_item.ljust(25, ' ')))
             if DIC_in[ARR_item]["ARR_TYPE"] == "S":
-                #print(DIC_DATA_TYPE_STR[DIC_in[ARR_item]["DATA_TYPE"]])
+                # the ARR_TYPE as single input number
                 if DIC_in[ARR_item]["DATA_TYPE"] == "BLN":
                     self.FILE.write(DIC_DATA_TYPE_STR[DIC_in[ARR_item]["DATA_TYPE"]].format(self.BLN2WRFSTR(DIC_in[ARR_item]["VALUE"])))
                 elif DIC_in[ARR_item]["DATA_TYPE"] == "STR":
                     if self.IF_ensemble_run:
-                        self.FILE.write(DIC_in[ARR_item]["STR_FMT"].format(DIC_in[ARR_item]["VALUE"], "{0:05d}".format(self.NUM_ensemble_member), self.STR_connect_symbol))
+                        self.FILE.write(DIC_in[ARR_item]["STR_FMT"].format(DIC_in[ARR_item]["VALUE"],\
+                                "{0:05d}".format(self.NUM_ensemble_member), \
+                                self.STR_connect_symbol, \
+                                "{0:05d}".format(self.NUM_input_ensemble_member)))
                     else:
                         self.FILE.write(DIC_in[ARR_item]["STR_FMT"].format(DIC_in[ARR_item]["VALUE"], ""              , ""))
                 else:
                     self.FILE.write(DIC_DATA_TYPE_STR[DIC_in[ARR_item]["DATA_TYPE"]].format(DIC_in[ARR_item]["VALUE"]))
             elif DIC_in[ARR_item]["ARR_TYPE"] == "M":
+            # the ARR_TYPE as multi input number but same all in a row
                 for d in range(self.NUM_MAX_DOM):
                     if DIC_in[ARR_item]["DATA_TYPE"] == "BLN":
                         self.FILE.write(DIC_DATA_TYPE_STR[DIC_in[ARR_item]["DATA_TYPE"]].format(self.BLN2WRFSTR(DIC_in[ARR_item]["VALUE"])))
@@ -474,6 +478,7 @@ class NamelistCreater:
                         self.FILE.write(DIC_DATA_TYPE_STR[DIC_in[ARR_item]["DATA_TYPE"]].format(DIC_in[ARR_item]["VALUE"]))
 
             elif DIC_in[ARR_item]["ARR_TYPE"] == "P":
+            # the ARR_TYPE as multi input number but must be user specific
                 if len(self.DIC_user[ARR_item]["VALUE"]) == 1:
                     self.FILE.write(self.DIC_user[ARR_item]["STR_FMT"].format(self.DIC_user[ARR_item]["VALUE"][0]))
                 else:
@@ -484,6 +489,7 @@ class NamelistCreater:
                             self.FILE.write(self.DIC_user[ARR_item]["STR_FMT"].format(self.DIC_user[ARR_item]["VALUE"][d]))
 
             elif DIC_in[ARR_item]["ARR_TYPE"] == "A":
+            # the ARR_TYPE as multi input number but can be different in a row
                 for d in range(self.NUM_MAX_DOM):
                     if DIC_in[ARR_item]["DATA_TYPE"] == "BLN":
                         if d == 0:
