@@ -1,6 +1,6 @@
 import pytest 
-class Test:
-    def importlibs(self):
+class Test_libs:
+    def test_importlibs(self):
         # Check if os import correctly
         import os
         assert type(os.getcwd()) == str
