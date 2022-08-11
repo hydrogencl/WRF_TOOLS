@@ -7,7 +7,7 @@ class Test_libs:
 
         # Check if re import correctly
         import re
-        assert len(re.split("\ ", "This is a test.")) == 4 
+        assert len(re.split(" ", "This is a test.")) == 4 
 
         # Check if math import correctly
         import math
