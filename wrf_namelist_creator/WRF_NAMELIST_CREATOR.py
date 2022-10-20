@@ -191,7 +191,7 @@ class NamelistCreater:
     # Others:
     STR_DIR="./"
 
-    def __init__(self, STR_namelist="namelist.input", STR_DIR="./"):
+    def __init__(self, STR_wrf_namelist="namelist.input", STR_wps_namelist="namelist.wps", STR_DIR="./"):
         print("Start the namelist creator by Python")
         print("    Author: Y.-S. Lu                ")
         print("    First Edition: 24.04.2020       ")
@@ -204,8 +204,22 @@ class NamelistCreater:
 
         # FILENAME
 
-        self.STR_namelist = STR_namelist
-        self.STR_DIR      = STR_DIR
+        self.STR_wrf_namelist = STR_wrf_namelist
+        self.STR_wps_namelist = STR_wps_namelist
+        self.STR_DIR          = STR_DIR
+
+        self.ARR_wps_share    = ["wrf_core","max_dom","start_date","end_date","interval_seconds","active_grid","subgrid_ratio_x","subgrid_ratio_y","io_form_geogrid","opt_output_from_geogrid_path","debug_level","start_date","end_date","start_year","start_month","start_day","start_hour","start_minute","start_second","end_year","end_month","end_day","end_hour","end_minute","end_second"]
+
+        self.ARR_wps_geogrid  = ["parent_id","parent_grid_ratio","i_parent_start","j_parent_start","s_we","e_we","s_sn","e_sn","geog_data_res","dx","dy","map_proj","ref_lat","ref_lon","ref_x","ref_y","truelat1","truelat2","stand_lon","geog_data_path","opt_geogrid_tbl_path","geog_data_res","geog_data_res"]
+
+        self.ARR_ungrib       = ["out_format","prefix","ec_rec_len","pmin"]
+
+        self.ARR_metgrid      = ["fg_name", "constants_name", "io_form_metgrid", "opt_output_from_metgrid_path", "opt_metgrid_tbl_path", "process_only_bdy"]
+
+        self.ARR_mod_levs     = ["press_pa"]
+
+        self.ARR_plotfmt      = ["ix","jx","ioff","joff"]
+
 
         self.ARR_time_control = ['run_days', 'run_hours', 'run_minutes', 'run_seconds', 'start_year', 'start_month', 'start_day', 'start_hour', 'start_minute', 'start_second', 'end_year', 'end_month', 'end_day', 'end_hour', 'end_minute', 'end_second', 'interval_seconds', 'input_from_file', 'history_interval', 'history_outname', 'bdy_inname', 'input_inname', 'frames_per_outfile', 'auxhist1_outname', 'auxhist2_outname', 'auxhist1_interval', 'auxhist2_interval', 'frames_per_auxhist1', 'frames_per_auxhist2', 'aux1_time', 'aux2_time', 'interpolation_time', 'interpolation_number', 'restart', 'restart_interval', 'override_restart_timers', 'io_form_history', 'io_form_restart', 'io_form_input', 'io_form_boundary', 'debug_level', 'io_form_auxinput2', 'io_form_auxhist1', 'io_form_auxhist2', 'auxinput1_inname']
 
@@ -223,7 +237,99 @@ class NamelistCreater:
 
         self.ARR_stoch_sppt = ['sppt', 'nens', 'timescale_sppt', 'gridpt_stddev_sppt', 'ISEED_SPPT']
 
+        # WPS NAMELISTS:
+        # Share:
+        self.DIC_time_control_common_para = {\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
 
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            }
+
+        # Geogrid
+        self.DIC_time_control_common_para = {\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+
+            }
+
+        # Ungrib
+        self.DIC_time_control_common_para = {\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+
+            }
+
+ 
+
+        # Metgrid
+        self.DIC_time_control_common_para = {\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+            "        "                         : {"VALUE": [                 ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
+
+
+            }
+        # mod_levs
+        self.DIC_time_control_common_para = {\
+
+
+
+        # Plotfmt
+        self.DIC_time_control_common_para = {\
+
+
+
+
+
+        # WRF NAMELIST:
         # Time_Control common parameters:
         self.DIC_time_control_common_para = {\
         "run_days"                         : { "VALUE":  0           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"P"},
@@ -505,13 +611,18 @@ class NamelistCreater:
 
             self.FILE.write("\n")
 
+    def create_wps_namelist(self):
+        self.FILE     = open("{0:s}/{1:s}".format(self.STR_DIR, self.STR_wps_namelist), "w")
+        print("Starting creating the namelist for wps: {0:s}".format(self.STR_wps_namelist))
+
+
     def create_a_namelist(self):
         if self.IF_ensemble_run :
-            self.FILE     = open("{0:s}/{1:s}{2:05d}".format(self.STR_DIR, self.STR_namelist, self.NUM_ensemble_member), "w")
+            self.FILE     = open("{0:s}/{1:s}{2:05d}".format(self.STR_DIR, self.STR_wrf_namelist, self.NUM_ensemble_member), "w")
         else: 
-            self.FILE     = open("{0:s}/{1:s}".format(self.STR_DIR, self.STR_namelist), "w")
+            self.FILE     = open("{0:s}/{1:s}".format(self.STR_DIR, self.STR_wrf_namelist), "w")
 
-        print("starting creating the namelist: {0:s}".format(self.STR_namelist))
+        print("starting creating the namelist: {0:s}".format(self.STR_wrf_namelist))
         self.FILE.write("&time_control\n")
         self.write_namelist(self.DIC_time_control_common_para, self.ARR_time_control)
         self.FILE.write("/\n")
