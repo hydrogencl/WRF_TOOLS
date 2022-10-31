@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import math, re, os
+from subprocess import run
 """
 This main program body contains following:
     1) tools: 
@@ -23,6 +24,39 @@ This main program body contains following:
         modified due to different usage or systems. 
 
 """
+class Executors:
+
+    def __init__(self):
+        self.strFolder_WPS      = "./WRFV4"
+        self.strFolder_WRF      = "./WPS"
+        self.strFolder_GRIB     = "./Path/To/GRIB"
+        self.Interval_Hour      = 3
+        self.strGribLinkName    = 'GRIBFILE'
+        self.input_global       = 'GFS'
+
+    def run_geogrid(self):
+        os.chdir(self.strFolder_WPS)
+        run(["{0:s}/geogrid.exe".format(self.strFolder_WPS)])
+
+    def run_ungrib(self):
+        run(["{0:s}/ungrib.exe".format(self.strFolder_WPS)])
+
+    def run_metgrid(self):
+        run(["{0:s}/metgrid.exe".format(self.strFolder_WPS)])
+
+    def link_ungrib(self, arrFiles=[], 
+        # Remove the old grib link
+        os.chdir(self.strFolder_WPS)
+        for strFile in os.listdir():
+            if re.match(self.strGribLinkName, strFile):
+                os.remove(strFile)
+                
+        for ind, files in enumerate(arrFiles):
+            strIndex = Tools.make_alphabet_index(ind)
+            print(strIndex, files)
+            os.symlink(files, "{2:s}/{0:s}.{1:s}".format(strGribLinkName, strIndex, self.strFolder_WRF))
+        
+
 class Tools:
     def run_time_cal(ARR_TIME_IN, IF_LEAP=False, NUM_MON=0):
         if IF_LEAP == True: 
@@ -86,6 +120,28 @@ class Tools:
                 ARR_TIME_IN[0], ARR_TIME_IN[1], ARR_TIME_IN[2],\
                 ARR_TIME_IN[3], ARR_TIME_IN[4], ARR_TIME_IN[5]  )
 
+    def make_alphabet_index(indexIn):
+        """
+        The index for Alphabet which will turn index from 0 to AAA as
+        based-26 positional notation. The largest index is 17575 as ZZZ.
+        This function should provide a very elastic function to provide
+        the alphabet index. Question: why not use number index? 
+        """
+        if indexIn >= 26**26:
+            print("Running out of suffixes, maximum is 17575")
+            return "RUNNING_OUT_OF_INDEX"
+        else:
+            arrAlphabetOrder=["A", "B", "C", "D", "E", "F", "G","H",  \
+                              "I", "J", "K", "L", "M", "N", "O","P",  \
+                              "Q", "R", "S", "T", "U", "V", "W", \
+                              "X", "Y", "Z"]
+            ind_out1 = int(indexIn/26**2) 
+            ind_out2 = int((math.fmod(indexIn - ind_out1*26**2, 26**2))/26)
+            ind_out3 = int((math.fmod(indexIn - ind_out1*26**2 - ind_out2*26, 26)))
+            strOut   = "{0:s}{1:s}{2:s}".format(arrAlphabetOrder[ind_out1],
+                                                arrAlphabetOrder[ind_out2],
+                                                arrAlphabetOrder[ind_out3])
+            return strOut
 
 class NamelistInformation:
     """
@@ -203,25 +259,8 @@ class NamelistCreater:
     # Important Parameters
     # Time control :
     # Format: YYYY MM DD hh mm ss
-    ARR_run_time       = [    0,  0,  0, 48,  0,  0 ]  
-    ARR_start_time     = [ 2008,  8,  8,  0,  0,  0 ]
-    ARR_end_time       = [ 2008,  8, 10,  0,  0,  0 ]
 
     # Domains:
-    NUM_MAX_DOM               = 2
-    ARR_e_we                  = [  180, 223, 436 ]
-    ARR_e_SN                  = [  180, 223, 436 ]
-    ARR_e_vert                = [   50,  50,  50  ] 
-    ARR_dx                    = [ 20000, 6666.666, 3333.333 ]
-    ARR_dy                    = [ 20000, 6666.666, 3333.333 ]
-    ARR_grid_id               = [     1,        2,        3 ]
-    ARR_parent_id             = [     1,        1,        2 ]
-    ARR_i_parent_start        = [     1,       65,        2 ]
-    ARR_j_parent_start        = [     1,       58,        2 ]
-    ARR_parent_grid_ratio     = [     1,        3,        3 ]
-    ARR_max_step_increase_pct = [     5,       51,       51 ]
-    ARR_starting_time_step    = [    20,       10,        5 ]
-    ARR_max_time_step         = [   100,       24,       10 ]
 
     # Ensembles:
     NUM_ensemble_member       = 0
@@ -230,7 +269,7 @@ class NamelistCreater:
     # Others:
     STR_DIR="./"
 
-    def __init__(self, STR_wrf_namelist="namelist.input", STR_wps_namelist="namelist.wps", STR_DIR="./"):
+    def __init__(self, STR_wrf_namelist="namelist.input", STR_wps_namelist="namelist.wps", STR_DIR="./", debug_in = False):
         print("Start the namelist creator by Python")
         print("    Author: Y.-S. Lu                ")
         print("    First Edition: 24.04.2020       ")
@@ -240,7 +279,7 @@ class NamelistCreater:
         self.IF_SPPT  = False
         self.IF_SKEBS = False
         self.STR_connect_symbol = "_"
-
+        self.debug    = debug_in
         # FILENAME
 
         self.STR_wrf_namelist = STR_wrf_namelist
@@ -345,8 +384,8 @@ class NamelistCreater:
             "geog_data_res"                    : {"VALUE":  ['modis_30s+2m','modis_30s','modis_30s']   ,\
                                                                               "DATA_TYPE": "STR", "ARR_TYPE" :"M",\
                                                                               "STR_FMT" : "\'{0:s}\',"              },
-            "dx"                               : {"VALUE":  0               , "DATA_TYPE": "INT", "ARR_TYPE" :"P"   },
-            "dy"                               : {"VALUE":  0               , "DATA_TYPE": "INT", "ARR_TYPE" :"P"   },
+            "dx"                               : {"VALUE":  15000           , "DATA_TYPE": "INT", "ARR_TYPE" :"P"   },
+            "dy"                               : {"VALUE":  15000           , "DATA_TYPE": "INT", "ARR_TYPE" :"P"   },
             "map_proj"                         : {"VALUE":  'lambert'       , "DATA_TYPE": "STR", "ARR_TYPE" :"S"   ,\
                                                                               "STR_FMT" : "\'{0:s}\',"},
             "ref_lat"                          : {"VALUE":  45              , "DATA_TYPE": "FLT", "ARR_TYPE" :"S"   },
@@ -358,7 +397,7 @@ class NamelistCreater:
             "stand_lon"                        : {"VALUE":   8.5            , "DATA_TYPE": "FLT", "ARR_TYPE" :"S"   },
             "geog_data_path"                   : {"VALUE": '/path/to/geo'   , "DATA_TYPE": "STR", "ARR_TYPE" :"S",\
                                                                               "STR_FMT" : "\'{0:s}\',"},
-            "opt_geogrid_tbl_path"             : {"VALUE": 'geogrid/'       , "DATA_TYPE": "STR", "ARR_TYPE" :"S",\
+            "opt_geogrid_tbl_path"             : {"VALUE": 'geogrid'       ,  "DATA_TYPE": "STR", "ARR_TYPE" :"S",\
                                                                               "STR_FMT" : "\'{0:s}\',"},
             "geog_data_res"                    : {"VALUE": ['usgs_lakes+10m','usgs_lakes+2m']   ,\
                                                                               "DATA_TYPE": "STR", "ARR_TYPE" :"M",\
@@ -462,26 +501,26 @@ class NamelistCreater:
             "time_step_fract_num"              : { "VALUE":  0           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
             "time_step_fract_den"              : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
             "max_dom"                          : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"P"},
-            "e_we"                             : { "VALUE":  180         , "DATA_TYPE" : "INT" , "ARR_TYPE" :"P"},
-            "e_sn"                             : { "VALUE":  180         , "DATA_TYPE" : "INT" , "ARR_TYPE" :"P"},
-            "e_vert"                           : { "VALUE":  50          , "DATA_TYPE" : "INT" , "ARR_TYPE" :"P"},
+            "e_we"                             : { "VALUE":  180         , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
+            "e_sn"                             : { "VALUE":  180         , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
+            "e_vert"                           : { "VALUE":  50          , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
             "p_top_requested"                  : { "VALUE":  5000        , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
             "num_metgrid_levels"               : { "VALUE":  42          , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
             "num_metgrid_soil_levels"          : { "VALUE":  4           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
             "dx"                               : { "VALUE":  20000       , "DATA_TYPE" : "FLT" , "ARR_TYPE" :"P"},
             "dy"                               : { "VALUE":  20000       , "DATA_TYPE" : "FLT" , "ARR_TYPE" :"P"},
-            "grid_id"                          : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"P"},
-            "parent_id"                        : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"P"},
-            "i_parent_start"                   : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"P"},
-            "j_parent_start"                   : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"P"},
-            "parent_grid_ratio"                : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"P"},
+            "grid_id"                          : { "VALUE":  [1,1]       , "DATA_TYPE" : "INT" , "ARR_TYPE" :"P"},
+            "parent_id"                        : { "VALUE":  [1,1]       , "DATA_TYPE" : "INT" , "ARR_TYPE" :"P"},
+            "i_parent_start"                   : { "VALUE":  [1,1]       , "DATA_TYPE" : "INT" , "ARR_TYPE" :"P"},
+            "j_parent_start"                   : { "VALUE":  [100,100]   , "DATA_TYPE" : "INT" , "ARR_TYPE" :"P"},
+            "parent_grid_ratio"                : { "VALUE":  [1,3]       , "DATA_TYPE" : "INT" , "ARR_TYPE" :"P"},
             "feedback"                         : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
             "use_adaptive_time_step"           : { "VALUE":  True        , "DATA_TYPE" : "BLN" , "ARR_TYPE" :"S"},
             "step_to_output_time"              : { "VALUE":  False       , "DATA_TYPE" : "BLN" , "ARR_TYPE" :"S"},
             "target_cfl"                       : { "VALUE":  1.2         , "DATA_TYPE" : "FLT" , "ARR_TYPE" :"M"},
-            "max_step_increase_pct"            : { "VALUE":  5           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"P"},
-            "starting_time_step"               : { "VALUE":  20          , "DATA_TYPE" : "INT" , "ARR_TYPE" :"P"},
-            "max_time_step"                    : { "VALUE":  100         , "DATA_TYPE" : "INT" , "ARR_TYPE" :"P"},
+            "max_step_increase_pct"            : { "VALUE":  5           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
+            "starting_time_step"               : { "VALUE":  20          , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
+            "max_time_step"                    : { "VALUE":  100         , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
             "min_time_step"                    : { "VALUE":  -1          , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
             "interp_type"                      : { "VALUE":  2           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
             "adaptation_domain"                : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
@@ -566,21 +605,14 @@ class NamelistCreater:
             "timescale_sppt"                   : { "VALUE":  21600      , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
             "gridpt_stddev_sppt"               : { "VALUE":    0.3      , "DATA_TYPE" : "FLT" , "ARR_TYPE" :"S"}}
 
-    def read_user_specific(self, ARR_run_time_in=[], ARR_start_time_in=[], ARR_end_time_in=[], NUM_MAX_DOM_in=0):
-        if len(ARR_run_time_in) == 0 :
-            ARR_run_time = self.ARR_run_time
-        else:
-            ARR_run_time = ARR_run_time_in
+    def read_user_specific(self, run_time=[], start_time= [], end_time=[], max_dom=0, \
+                                 e_we=[], e_sn=[], dx=15000, dy=15000,\
+                                 grid_id =[], parent_id = [], \
+                                 i_parent_start=[], j_parent_start=[], parent_grid_ratio=[]):
+        ARR_run_time   = run_time
+        ARR_start_time = start_time
+        ARR_end_time   = end_time
 
-        if len(ARR_start_time_in) == 0 :
-            ARR_start_time = self.ARR_start_time
-        else:
-            ARR_start_time = ARR_start_time_in
-
-        if len(ARR_end_time_in) == 0 :
-            ARR_end_time = self.ARR_end_time
-        else:
-            ARR_end_time = ARR_end_time_in
 
         # Checking Date and Time based on the intervals
         ARR_END_DATE_CHK  = Tools.calendar_cal(ARR_start_time, ARR_run_time)
@@ -591,42 +623,42 @@ class NamelistCreater:
             print("       : The end date is changed as:{0:04d}-{1:02d}-{2:02d}_{3:02d}:{4:02d}:{5:02d}".format(\
                     ARR_end_time[0], ARR_end_time[1],ARR_end_time[2],ARR_end_time[3],ARR_end_time[4],ARR_end_time[5]))
 
-        if NUM_MAX_DOM_in == 0 :
-            NUM_MAX_DOM  = self.NUM_MAX_DOM 
+        if max_dom == 0 :
+            NUM_MAX_DOM  = 1                
         else:
-            NUM_MAX_DOM  = NUM_MAX_DOM_in
-
+            NUM_MAX_DOM  = max_dom
+        self.NUM_MAX_DOM = NUM_MAX_DOM
         self.DIC_user = {\
         "run_days"                         : {"VALUE": [ ARR_run_time[2] ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d}," },\
         "run_hours"                        : {"VALUE": [ ARR_run_time[3] ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d},"},\
         "run_minutes"                      : {"VALUE": [ ARR_run_time[4] ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d},"},\
         "run_seconds"                      : {"VALUE": [ ARR_run_time[5] ], "DATA_TYPE": "IND" ,"STR_FMT": "     {0:02d},"},\
-        "start_year"                       : {"VALUE": [ ARR_start_time[0] for d in range(self.NUM_MAX_DOM)], "DATA_TYPE": "INT","STR_FMT": "   {0:04d},"},\
-        "start_month"                      : {"VALUE": [ ARR_start_time[1] for d in range(self.NUM_MAX_DOM)], "DATA_TYPE": "INT","STR_FMT": "     {0:02d},"},\
-        "start_day"                        : {"VALUE": [ ARR_start_time[2] for d in range(self.NUM_MAX_DOM)], "DATA_TYPE": "INT","STR_FMT": "     {0:02d},"},\
-        "start_hour"                       : {"VALUE": [ ARR_start_time[3] for d in range(self.NUM_MAX_DOM)], "DATA_TYPE": "INT","STR_FMT": "     {0:02d},"},\
-        "start_minute"                     : {"VALUE": [ ARR_start_time[4] for d in range(self.NUM_MAX_DOM)], "DATA_TYPE": "INT","STR_FMT": "     {0:02d},"},\
-        "start_second"                     : {"VALUE": [ ARR_start_time[5] for d in range(self.NUM_MAX_DOM)], "DATA_TYPE": "INT","STR_FMT": "     {0:02d},"},\
-        "end_year"                         : {"VALUE": [ ARR_end_time[0] for d in range(self.NUM_MAX_DOM)], "DATA_TYPE": "INT","STR_FMT": "   {0:04d},"},\
-        "end_month"                        : {"VALUE": [ ARR_end_time[1] for d in range(self.NUM_MAX_DOM)], "DATA_TYPE": "INT","STR_FMT": "     {0:02d},"},\
-        "end_day"                          : {"VALUE": [ ARR_end_time[2] for d in range(self.NUM_MAX_DOM)], "DATA_TYPE": "INT","STR_FMT": "     {0:02d},"},\
-        "end_hour"                         : {"VALUE": [ ARR_end_time[3] for d in range(self.NUM_MAX_DOM)], "DATA_TYPE": "INT","STR_FMT": "     {0:02d},"},\
-        "end_minute"                       : {"VALUE": [ ARR_end_time[4] for d in range(self.NUM_MAX_DOM)], "DATA_TYPE": "INT","STR_FMT": "     {0:02d},"},\
-        "end_second"                       : {"VALUE": [ ARR_end_time[5] for d in range(self.NUM_MAX_DOM)], "DATA_TYPE": "INT","STR_FMT": "     {0:02d},"},\
-        "max_dom"                     : {"VALUE": [ NUM_MAX_DOM ], "DATA_TYPE": "INT","STR_FMT": "{0:7d},"},\
-        "e_we"                        : {"VALUE": self.ARR_e_we, "DATA_TYPE": "INT","STR_FMT": "{0:7d},"},\
-        "e_sn"                        : {"VALUE": self.ARR_e_SN, "DATA_TYPE": "INT","STR_FMT": "{0:7d},"},\
-        "e_vert"                      : {"VALUE": self.ARR_e_vert, "DATA_TYPE": "INT","STR_FMT": "{0:7d},"},\
-        "dx"                          : {"VALUE": self.ARR_dx, "DATA_TYPE": "FLT","STR_FMT": "{0:7.3f},"},\
-        "dy"                          : {"VALUE": self.ARR_dy, "DATA_TYPE": "FLT","STR_FMT": "{0:7.3f},"},\
-        "grid_id"                     : {"VALUE": self.ARR_grid_id, "DATA_TYPE": "INT","STR_FMT": "{0:7d},"},\
-        "parent_id"                   : {"VALUE": self.ARR_parent_id, "DATA_TYPE": "INT","STR_FMT": "{0:7d},"},\
-        "i_parent_start"              : {"VALUE": self.ARR_i_parent_start, "DATA_TYPE": "INT","STR_FMT": "{0:7d},"},\
-        "j_parent_start"              : {"VALUE": self.ARR_j_parent_start, "DATA_TYPE": "INT","STR_FMT": "{0:7d},"},\
-        "parent_grid_ratio"           : {"VALUE": self.ARR_parent_grid_ratio, "DATA_TYPE": "INT","STR_FMT": "{0:7d},"},\
-        "max_step_increase_pct"       : {"VALUE": self.ARR_max_step_increase_pct, "DATA_TYPE": "INT","STR_FMT": "{0:7d},"},\
-        "starting_time_step"          : {"VALUE": self.ARR_starting_time_step, "DATA_TYPE": "INT","STR_FMT": "{0:7d},"},\
-        "max_time_step"               : {"VALUE": self.ARR_max_time_step, "DATA_TYPE": "INT","STR_FMT": "{0:7d},"},\
+        "start_year"                       : {"VALUE": [ ARR_start_time[0] for d in range(NUM_MAX_DOM)], "DATA_TYPE": "INT","STR_FMT": "   {0:04d},"},\
+        "start_month"                      : {"VALUE": [ ARR_start_time[1] for d in range(NUM_MAX_DOM)], "DATA_TYPE": "INT","STR_FMT": "     {0:02d},"},\
+        "start_day"                        : {"VALUE": [ ARR_start_time[2] for d in range(NUM_MAX_DOM)], "DATA_TYPE": "INT","STR_FMT": "     {0:02d},"},\
+        "start_hour"                       : {"VALUE": [ ARR_start_time[3] for d in range(NUM_MAX_DOM)], "DATA_TYPE": "INT","STR_FMT": "     {0:02d},"},\
+        "start_minute"                     : {"VALUE": [ ARR_start_time[4] for d in range(NUM_MAX_DOM)], "DATA_TYPE": "INT","STR_FMT": "     {0:02d},"},\
+        "start_second"                     : {"VALUE": [ ARR_start_time[5] for d in range(NUM_MAX_DOM)], "DATA_TYPE": "INT","STR_FMT": "     {0:02d},"},\
+        "end_year"                         : {"VALUE": [ ARR_end_time[0] for d in range(NUM_MAX_DOM)], "DATA_TYPE": "INT","STR_FMT": "   {0:04d},"},\
+        "end_month"                        : {"VALUE": [ ARR_end_time[1] for d in range(NUM_MAX_DOM)], "DATA_TYPE": "INT","STR_FMT": "     {0:02d},"},\
+        "end_day"                          : {"VALUE": [ ARR_end_time[2] for d in range(NUM_MAX_DOM)], "DATA_TYPE": "INT","STR_FMT": "     {0:02d},"},\
+        "end_hour"                         : {"VALUE": [ ARR_end_time[3] for d in range(NUM_MAX_DOM)], "DATA_TYPE": "INT","STR_FMT": "     {0:02d},"},\
+        "end_minute"                       : {"VALUE": [ ARR_end_time[4] for d in range(NUM_MAX_DOM)], "DATA_TYPE": "INT","STR_FMT": "     {0:02d},"},\
+        "end_second"                       : {"VALUE": [ ARR_end_time[5] for d in range(NUM_MAX_DOM)], "DATA_TYPE": "INT","STR_FMT": "     {0:02d},"},\
+        "max_dom"                     : {"VALUE":  [ NUM_MAX_DOM ]            , "DATA_TYPE": "INT","STR_FMT": "{0:7d},"},\
+        "e_we"                        : {"VALUE":          e_we               , "DATA_TYPE": "INT","STR_FMT": "{0:7d},"},\
+        "e_sn"                        : {"VALUE":          e_sn               , "DATA_TYPE": "INT","STR_FMT": "{0:7d},"},\
+#        "e_vert"                      : {"VALUE": self.ARR_e_vert, "DATA_TYPE": "INT","STR_FMT": "{0:7d},"},\
+        "dx"                          : {"VALUE":        [ dx ]               , "DATA_TYPE": "INT","STR_FMT": "{0:7.3f},"},\
+        "dy"                          : {"VALUE":        [ dy ]               , "DATA_TYPE": "INT","STR_FMT": "{0:7.3f},"},\
+        "grid_id"                     : {"VALUE":          grid_id            , "DATA_TYPE": "INT","STR_FMT": "{0:7d},"},\
+        "parent_id"                   : {"VALUE":          parent_id          , "DATA_TYPE": "INT","STR_FMT": "{0:7d},"},\
+        "i_parent_start"              : {"VALUE":          i_parent_start     , "DATA_TYPE": "INT","STR_FMT": "{0:7d},"},\
+        "j_parent_start"              : {"VALUE":          j_parent_start     , "DATA_TYPE": "INT","STR_FMT": "{0:7d},"},\
+        "parent_grid_ratio"           : {"VALUE":          parent_grid_ratio  , "DATA_TYPE": "INT","STR_FMT": "{0:7d},"},\
+#        "max_step_increase_pct"       : {"VALUE": self.ARR_max_step_increase_pct, "DATA_TYPE": "INT","STR_FMT": "{0:7d},"},\
+#        "starting_time_step"          : {"VALUE": self.ARR_starting_time_step, "DATA_TYPE": "INT","STR_FMT": "{0:7d},"},\
+#        "max_time_step"               : {"VALUE": self.ARR_max_time_step, "DATA_TYPE": "INT","STR_FMT": "{0:7d},"},\
         }
         return 0    
 
@@ -641,6 +673,7 @@ class NamelistCreater:
         DIC_DATA_TYPE_STR = {"FLT": "{0:7.2f},","BLN": "{0:s},","INT": "{0:7d},", "SCI": "{0:1.1E}," , "STR": "\'{0:s}\'," }
         for ARR_item in ARR_in :
             self.FILE.write(" {0:s} = ".format(ARR_item.ljust(25, ' ')))
+            if self.debug: print("Working on var: {0:s}".format(ARR_item))
             if DIC_in[ARR_item]["ARR_TYPE"] == "S":
                 # the ARR_TYPE as single input number
                 if DIC_in[ARR_item]["DATA_TYPE"] == "BLN":
