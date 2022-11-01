@@ -38,13 +38,20 @@ class Executors:
         os.chdir(self.strFolder_WPS)
         run(["{0:s}/geogrid.exe".format(self.strFolder_WPS)])
 
-    def run_ungrib(self):
+    def run_ungrib(self, input_global=None):
+        os.chdir(self.strFolder_WPS)
+        if input_global == None:
+            input_global = self.input_global
+        os.rem 
+        
         run(["{0:s}/ungrib.exe".format(self.strFolder_WPS)])
+        # check which type of input
 
     def run_metgrid(self):
+        os.chdir(self.strFolder_WPS)
         run(["{0:s}/metgrid.exe".format(self.strFolder_WPS)])
 
-    def link_ungrib(self, arrFiles=[], 
+    def link_ungrib(self, arrFiles=[]): 
         # Remove the old grib link
         os.chdir(self.strFolder_WPS)
         for strFile in os.listdir():
@@ -131,15 +138,15 @@ class Tools:
             print("Running out of suffixes, maximum is 17575")
             return "RUNNING_OUT_OF_INDEX"
         else:
-            arrAlphabetOrder=["A", "B", "C", "D", "E", "F", "G","H",  \
-                              "I", "J", "K", "L", "M", "N", "O","P",  \
-                              "Q", "R", "S", "T", "U", "V", "W", \
-                              "X", "Y", "Z"]
-            ind_out1 = int(indexIn/26**2) 
-            ind_out2 = int((math.fmod(indexIn - ind_out1*26**2, 26**2))/26)
-            ind_out3 = int((math.fmod(indexIn - ind_out1*26**2 - ind_out2*26, 26)))
-            strOut   = "{0:s}{1:s}{2:s}".format(arrAlphabetOrder[ind_out1],
-                                                arrAlphabetOrder[ind_out2],
+            arrAlphabetOrder = ["A", "B", "C", "D", "E", "F", "G","H",  \
+                                "I", "J", "K", "L", "M", "N", "O","P",  \
+                                "Q", "R", "S", "T", "U", "V", "W",      \
+                                "X", "Y", "Z"]
+            ind_out1 = int(  indexIn/26**2) 
+            ind_out2 = int( (math.fmod( indexIn - ind_out1*26**2, 26**2))/26)
+            ind_out3 = int( (math.fmod( indexIn - ind_out1*26**2 - ind_out2*26, 26)))
+            strOut   = "{0:s}{1:s}{2:s}".format(arrAlphabetOrder[ind_out1], \
+                                                arrAlphabetOrder[ind_out2], \
                                                 arrAlphabetOrder[ind_out3])
             return strOut
 
