@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=55.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Module_Checker"
+version = "0.8.0"
+authors = [
+  { name="Y.-S. Lu", email="hydrogencl@gmail.com"},
+]
+description = """The package to check is the module exists. The test files
+                 are used to cope with pytest.
+              """
+readme = "README.md"
+license = { file="LICENSE" }
+requires-python = ">=3.4"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/hydrogencl/WRF_TOOLS"
+"Bug Tracker" = "https://github.com/hydrogencl/WRF_TOOLS/issues"
+
+~     

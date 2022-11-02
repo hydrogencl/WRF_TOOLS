@@ -3,20 +3,6 @@ import math, re, os
 from subprocess import run
 """
 This main program body contains following:
-    1) tools: 
-        The tools are mainly used to check the calculation of calendar stuff
-        e.g. the caluclation of the time and the date and examine them when
-        creating the run time and ending time. 
-
-    2) NamelistInformation:
-        The namelist checker is used to provide the information for the  
-        namelist as it's index number or description based on the user's 
-        manuel. Some is important e.g. the PBL is coped with different land 
-        surface physics schemes (MYNN or different type of MO). 
-
-
-        Please raise the issue in the github.com/hydrogencl/WRF_TOOLS to 
-        improve the problem and to correct errors. 
 
     3) NamelistCreator:
         The namelist creater is used to create the namelists for WRF and 
@@ -24,242 +10,8 @@ This main program body contains following:
         modified due to different usage or systems. 
 
 """
-class Executors:
 
-    def __init__(self):
-        self.strFolder_WPS      = "./WRFV4"
-        self.strFolder_WRF      = "./WPS"
-        self.strFolder_GRIB     = "./Path/To/GRIB"
-        self.Interval_Hour      = 3
-        self.strGribLinkName    = 'GRIBFILE'
-        self.input_global       = 'GFS'
-
-    def run_geogrid(self):
-        os.chdir(self.strFolder_WPS)
-        run(["{0:s}/geogrid.exe".format(self.strFolder_WPS)])
-
-    def run_ungrib(self, input_global=None):
-        os.chdir(self.strFolder_WPS)
-        if input_global == None:
-            input_global = self.input_global
-        os.rem 
-        
-        run(["{0:s}/ungrib.exe".format(self.strFolder_WPS)])
-        # check which type of input
-
-    def run_metgrid(self):
-        os.chdir(self.strFolder_WPS)
-        run(["{0:s}/metgrid.exe".format(self.strFolder_WPS)])
-
-    def link_ungrib(self, arrFiles=[]): 
-        # Remove the old grib link
-        os.chdir(self.strFolder_WPS)
-        for strFile in os.listdir():
-            if re.match(self.strGribLinkName, strFile):
-                os.remove(strFile)
-                
-        for ind, files in enumerate(arrFiles):
-            strIndex = Tools.make_alphabet_index(ind)
-            print(strIndex, files)
-            os.symlink(files, "{2:s}/{0:s}.{1:s}".format(strGribLinkName, strIndex, self.strFolder_WRF))
-        
-
-class Tools:
-    def run_time_cal(ARR_TIME_IN, IF_LEAP=False, NUM_MON=0):
-        if IF_LEAP == True: 
-            ARR_DAY_LIM = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366]
-        else:
-            ARR_DAY_LIM = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365]
-        if NUM_MON == 0:
-            DAYS    = ARR_TIME_IN[0] * sum(ARR_DAY_LIM) + ARR_DAY_LIM[ ARR_TIME_IN[1] ] + ARR_TIME_IN[2]
-        else:
-            DAYS    = ARR_TIME_IN[0] * sum(ARR_DAY_LIM) + ARR_TIME_IN[1] * NUM_MON + ARR_TIME_IN[2]
-        HOURS   = DAYS * 24 + ARR_TIME_IN[3]
-        MINUTES = HOURS * 60 + ARR_TIME_IN[4] 
-        return {"DAYS": DAYS, "HOURS": HOURS, "MINUTES": MINUTES }
-
-    def calendar_cal(ARR_START_TIME, ARR_INTERVAL, ARR_END_TIME_IN=[0, 0, 0, 0, 0, 0.0], IF_LEAP=False):
-        """Calculaing the Data and Time base on the intervals 
-           Input: ARR_START_TIME=[ %d %d %d %d %d %d ] 
-                  ARR_INTERAL=   [ %d %d %d %d %d %d ]         """
-        ARR_END_TIME  = [ 0,0,0,0,0,0.0]
-        ARR_DATETIME  = ["SECOND", "MINUTE", "HOUR","DAY", "MON", "YEAR"]
-        NUM_ARR_DATETIME = len(ARR_DATETIME)
-        IF_FERTIG = False
-        ARR_FERTIG = [0,0,0,0,0,0]
-        DIC_TIME_LIM = \
-        {"YEAR"  : {"START": 0 , "LIMIT": 9999 },\
-         "MON"   : {"START": 1 , "LIMIT": 12 },\
-         "DAY"   : {"START": 1 , "LIMIT": 31 },\
-         "HOUR"  : {"START": 0 , "LIMIT": 23 },\
-         "MINUTE": {"START": 0 , "LIMIT": 59 },\
-         "SECOND": {"START": 0 , "LIMIT": 59 },\
-        }
-        for I, T in enumerate(ARR_START_TIME):
-            ARR_END_TIME[I] = T + ARR_INTERVAL[I]
-        while IF_FERTIG == False:
-            if math.fmod(ARR_END_TIME[0],4) == 0: IF_LEAP=True
-            if IF_LEAP:
-                ARR_DAY_LIM = [0,31,29,31,30,31,30,31,31,30,31,30,31]
-            else:
-                ARR_DAY_LIM = [0,31,28,31,30,31,30,31,31,30,31,30,31]
-            for I, ITEM in enumerate(ARR_DATETIME):
-                NUM_ARR_POS = NUM_ARR_DATETIME-I-1
-                if ITEM == "DAY":
-                    if ARR_END_TIME[NUM_ARR_POS] > ARR_DAY_LIM[ARR_END_TIME[1]]:
-                        ARR_END_TIME[NUM_ARR_POS] = ARR_END_TIME[NUM_ARR_POS] - ARR_DAY_LIM[ARR_END_TIME[1]]
-                        ARR_END_TIME[NUM_ARR_POS - 1] += 1
-                else:
-                    if ARR_END_TIME[NUM_ARR_POS] > DIC_TIME_LIM[ITEM]["LIMIT"]:
-                        ARR_END_TIME[NUM_ARR_POS - 1] += 1
-                        ARR_END_TIME[NUM_ARR_POS] = ARR_END_TIME[NUM_ARR_POS] - DIC_TIME_LIM[ITEM]["LIMIT"] - 1
-            for I, ITEM in enumerate(ARR_DATETIME):
-                NUM_ARR_POS = NUM_ARR_DATETIME-I-1
-                if ITEM == "DAY":
-                    if ARR_END_TIME[NUM_ARR_POS] <= ARR_DAY_LIM[ARR_END_TIME[1]]: ARR_FERTIG[NUM_ARR_POS] = 1
-                else:
-                    if ARR_END_TIME[NUM_ARR_POS] <= DIC_TIME_LIM[ITEM]["LIMIT"]:  ARR_FERTIG[NUM_ARR_POS] = 1
-                if sum(ARR_FERTIG) == 6: IF_FERTIG = True
-        return ARR_END_TIME
-
-    def make_wrf_datetime(ARR_TIME_IN):
-        return "{0:04d}-{1:02d}-{2:02d}_{3:02d}:{4:02d}:{5:02d}".format(\
-                ARR_TIME_IN[0], ARR_TIME_IN[1], ARR_TIME_IN[2],\
-                ARR_TIME_IN[3], ARR_TIME_IN[4], ARR_TIME_IN[5]  )
-
-    def make_alphabet_index(indexIn):
-        """
-        The index for Alphabet which will turn index from 0 to AAA as
-        based-26 positional notation. The largest index is 17575 as ZZZ.
-        This function should provide a very elastic function to provide
-        the alphabet index. Question: why not use number index? 
-        """
-        if indexIn >= 26**26:
-            print("Running out of suffixes, maximum is 17575")
-            return "RUNNING_OUT_OF_INDEX"
-        else:
-            arrAlphabetOrder = ["A", "B", "C", "D", "E", "F", "G","H",  \
-                                "I", "J", "K", "L", "M", "N", "O","P",  \
-                                "Q", "R", "S", "T", "U", "V", "W",      \
-                                "X", "Y", "Z"]
-            ind_out1 = int(  indexIn/26**2) 
-            ind_out2 = int( (math.fmod( indexIn - ind_out1*26**2, 26**2))/26)
-            ind_out3 = int( (math.fmod( indexIn - ind_out1*26**2 - ind_out2*26, 26)))
-            strOut   = "{0:s}{1:s}{2:s}".format(arrAlphabetOrder[ind_out1], \
-                                                arrAlphabetOrder[ind_out2], \
-                                                arrAlphabetOrder[ind_out3])
-            return strOut
-
-class NamelistInformation:
-    """
-    The namelist informations. Format:
-    "Index Number": {OPT     : the WRF Option, same as Index Number
-                     SCHEME  : the NAME of the scheme
-                     REF     : Reference
-                    }
-    ADDITIONS: OPT_SFCLAY    : The forced Surface Layer Physics by WRF. Using the wrong one will be rejected
-               OPT_RA_PHYSIC : Recommending Radiation Scheme for DIC_SF_SURFACE_PHYSICS.  
-    """
-    DIC_BL_PBL_PHYSICS = {\
-        "1" : {"OPT": 1, "SCHEME": "YSU", "OPT_SFCLAY": [1], "REF": "Hong, Noh and Dudhia (2006, MWR)" },\
-        "2" : {"OPT": 2, "SCHEME": "MYJ", "OPT_SFCLAY": [2], "REF":  "Janjic (1994, MWR)" },\
-        "3" : {"OPT": 3, "SCHEME": "GFS", "OPT_SFCLAY": [3], "REF":  "Hong and Pan (1996, MWR)" },\
-        "4" : {"OPT": 4, "SCHEME": "QNSE", "OPT_SFCLAY": [4], "REF": "Sukoriansky, Galperin and Perov (2005, BLM)" },\
-        "5" : {"OPT": 5, "SCHEME": "MYNN2", "OPT_SFCLAY": [1, 2, 5], "REF": "Nakanishi and Niino (2006, BLM)"  },\
-        "6" : {"OPT": 6, "SCHEME": "MYNN3", "OPT_SFCLAY": [5], "REF": "Nakanishi and Niino (2006, BLM)"  },\
-        "7" : {"OPT": 7, "SCHEME": "ACM2", "OPT_SFCLAY": [1, 7], "REF": "Pleim (2007, JAMC)" },\
-        "8" : {"OPT": 8, "SCHEME": "BouLac", "OPT_SFCLAY": [1, 2], "REF": "Bougeault and Lacarrere (1989, MWR)" },\
-        "9" : {"OPT": 9, "SCHEME": "UW", "OPT_SFCLAY": [1, 2], "REF": "Bretherton and Park (2009, JC)" },\
-        "10" : {"OPT": 10, "SCHEME": "TEMF", "OPT_SFCLAY": [10], "REF": "Angevine, Jiang and Mauriten (2010, MWR)" },\
-        "12" : {"OPT": 12, "SCHEME": "GBM", "OPT_SFCLAY": [1], "REF": "Grenier and Bretherton (2001, MWR)" },\
-        "99" : {"OPT": 99, "SCHEME": "MRF", "OPT_SFCLAY": [0], "REF": "Hong and Pan (1996, MWR)" },\
-        "11" : {"OPT": 11, "SCHEME": "Shin-Hong", "OPT_SFCLAY": [0], "REF": "Shin and Hong (2015, MWR)" }}
-
-    DIC_CU_PHYSICS = {\
-        "1" : {"OPT": 1, "SCHEME": "Kain-Fritsch", "REF": "Kain (2004, JAM)" },\
-        "2" : {"OPT": 2, "SCHEME": "Betts-Miller-Janjic", "REF": "Janjic (1994, MWR; 2000, JAS)" },\
-        "3" : {"OPT": 3, "SCHEME": "Grell-Freitas", "REF": "Grell et al. (2013)" },\
-        "4" : {"OPT": 4, "SCHEME": "Old Simplied Arakawa-Schubert", "REF": "Pan and Wu (1995), NMC Office Note 409" },\
-        "5" : {"OPT": 5, "SCHEME": "Grell-3", "REF": "" },\
-        "6" : {"OPT": 6, "SCHEME": "Tiedtke", "REF": "Tiedtke (1989, MWR), Zhang et al. (2011, MWR)" },\
-        "7" : {"OPT": 7, "SCHEME": "Zhang-McFarlane", "REF": "Zhang and McFarlane (1995, AO)" },\
-        "11" : {"OPT": 11, "SCHEME": "Multi-scale KF", "REF": "Zheng et al. (2015, MWR)" },\
-        "14" : {"OPT": 14, "SCHEME": "New SAS", "REF": "Han and Pan (2011, Wea. Forecasting)" },\
-        "16" : {"OPT": 16, "SCHEME": "New Tiedtke", "REF": "" },\
-        "84" : {"OPT": 84, "SCHEME": "New SAS (HWRF)", "REF": "Han and Pan (2011, Wea. Forecasting)" },\
-        "93" : {"OPT": 93, "SCHEME": "Grell-Devenyi", "REF": "Grell and Devenyi (2002, GRL)" },\
-        "99" : {"OPT": 99, "SCHEME": "Old Kain-Fritsch", "REF": "Kain and Fritsch (1990, JAS; 1993, Meteo. Monogr.)" }} 
-
-    DIC_MP_PHYSICS = {\
-        "1" : {"OPT": 1, "SCHEME": "Kessler", "REF": "Kessler (1969)" },\
-        "2" : {"OPT": 2, "SCHEME": "Lin (Purdue)", "REF": "Lin, Farley and Orville (1983, JCAM)" },\
-        "3" : {"OPT": 3, "SCHEME": "WSM3", "REF": "Hong, Dudhia and Chen (2004, MWR)" },\
-        "4" : {"OPT": 4, "SCHEME": "WSM5", "REF": "Hong, Dudhia and Chen (2004, MWR)" },\
-        "5" : {"OPT": 5, "SCHEME": "Eta (Ferrier)", "REF": "Rogers, Black, Ferrier, Lin, Parrish and DiMego (2001, web doc)" },\
-        "6" : {"OPT": 6, "SCHEME": "WSM6", "REF": "Hong and Lim (2006, JKMS)" },\
-        "7" : {"OPT": 7, "SCHEME": "Goddard", "REF": "Tao, Simpson and McCumber (1989, MWR)" },\
-        "8" : {"OPT": 8, "SCHEME": "Thompson", "REF": "Thompson, Field, Rasmussen and Hall (2008, MWR)" },\
-        "9" : {"OPT": 9, "SCHEME": "Milbrandt 2-mom", "REF": "Milbrandt and Yau (2005, JAS)" },\
-        "10" : {"OPT": 10, "SCHEME": "Morrison 2-mom", "REF": "Morrison, Thompson and Tatarskii (2009, MWR)" },\
-        "11" : {"OPT": 11, "SCHEME": "CAM 5.1", "REF": "Neale et al. (2012, NCAR Tech Note)" },\
-        "13" : {"OPT": 12, "SCHEME": "SBU-YLin", "REF": "Lin and Colle (2011, MWR)" },\
-        "14" : {"OPT": 13, "SCHEME": "WDM5", "REF": "Lim and Hong (2010, MWR)" },\
-        "16" : {"OPT": 14, "SCHEME": "WDM6", "REF": "Lim and Hong (2010, MWR)" },\
-        "17" : {"OPT": 16, "SCHEME": "NSSL 2-mom", "REF": "Mansell, Ziegler and Bruning (2010, JAS)" },\
-        "18" : {"OPT": 17, "SCHEME": "NSSL 2-mom w/ CCN prediction", "REF": "Mansell, Ziegler and Bruning (2010, JAS)" },\
-        "19" : {"OPT": 18, "SCHEME": "NSSL 1-mom", "REF": "" },\
-        "21" : {"OPT": 19, "SCHEME": "NSSL 1-momlfo", "REF": "" },\
-        "22" : {"OPT": 21, "SCHEME": "NSSL 2-mom w/o hail", "REF": "" },\
-        "28" : {"OPT": 22, "SCHEME": "Thompson aerosol-aware", "REF": "Thompson and Eidhammer (2014, JAS)" },\
-        "30" : {"OPT": 28, "SCHEME": "HUJI SBM (fast)", "REF": "Khain et al. (2010, JAS)" },\
-        "32" : {"OPT": 30, "SCHEME": "HUJI SBM full", "REF": "Khain et al. (2004, JAS)" }}
-
-    DIC_RA_SW_PHYSICS = {\
-        "1" : {"OPT": 1, "SCHEME": "Dudhia", "REF": "Dudhia (1989, JAS)" },\
-        "2" : {"OPT": 2, "SCHEME": "Goddard", "REF": "Chou and Suarez (1994, NASA Tech Memo)" },\
-        "3" : {"OPT": 3, "SCHEME": "CAM", "REF": "Collins et al. (2004, NCAR Tech Note)" },\
-        "4" : {"OPT": 4, "SCHEME": "RRTMG", "REF": "Iacono et al. (2008, JGR)" },\
-        "24" : {"OPT": 24 , "SCHEME": "RRTMG", "REF": "Fast version" },\
-        "5" : {"OPT": 5, "SCHEME": "New Goddard", "REF": "Chou and Suarez (1999, NASA Tech Memo)" },\
-        "7" : {"OPT": 7, "SCHEME": "FLG", "REF": "Gu et al. (2011, JGR), Fu and Liou (1992, JAS)" },\
-        "99" : {"OPT": 99, "SCHEME": "GFDL", "REF": "Fels and Schwarzkopf (1981, JGR)" }}
-
-    DIC_RA_LW_PHYSICS = {\
-        "1" : {"OPT": 1, "SCHEME": "RRTM", "REF": "Mlawer et al. (1997, JGR)" },\
-        "3" : {"OPT": 3, "SCHEME": "CAM", "REF": "Collins et al. (2004, NCAR Tech Note)" },\
-        "4" : {"OPT": 4, "SCHEME": "RRTMG", "REF": "Iacono et al. (2008, JGR)" },\
-        "24" : {"OPT": 24, "SCHEME": "RRTMG", "REF": "Fast version" },\
-        "5" : {"OPT": 5, "SCHEME": "New Goddard", "REF": "Chou and Suarez (1999, NASA Tech Memo)" },\
-        "7" : {"OPT": 7, "SCHEME": "FLG", "REF": "Gu et al. (2011, JGR), Fu and Liou (1992, JAS)" },\
-        "31" : {"OPT": 31, "SCHEME": "Held-Suarez", "REF": "" },\
-        "99" : {"OPT": 99, "SCHEME": "GFDL", "REF": "Fels and Schwarzkopf (1981, JGR)" }}
-
-    DIC_SF_SFCLAY_PHYSICS = {\
-        "0" : {"OPT": 0, "SCHEME": "None", "REF": "" },\
-        "1" : {"OPT": 1, "SCHEME": "Revised MM5 Monin-Obukhov scheme", "REF": "" },\
-        "2" : {"OPT": 2, "SCHEME": "Monin-Obukhov (Janjic Eta) scheme", "REF": "" },\
-        "3" : {"OPT": 3, "SCHEME": "NCEP GFS scheme (NMM only)", "REF": "" },\
-        "4" : {"OPT": 4, "SCHEME": "QNSE", "REF": "" },\
-        "5" : {"OPT": 5, "SCHEME": "MYNN", "REF": "" },\
-        "7" : {"OPT": 7, "SCHEME": "Pleim-Xiu (ARW only), only tested with Pleim-Xiu surface and ACM2 PBL", "REF": "" },\
-        "10" : {"OPT": 10, "SCHEME": "TEMF (ARW only)", "REF": "" },\
-        "91" : {"OPT": 91, "SCHEME": "old MM5 surface layer scheme (previously option 1)", "REF": "" }}
-
-    DIC_SF_SURFACE_PHYSICS = {\
-        "0" : {"OPT": 0, "SCHEME": "old, or non-vegetation dependent thermal roughness length over land", "REF": "" },\
-        "1" : {"OPT": 1, "SCHEME": "thermal diffusion scheme", "REF": "" },\
-        "2" : {"OPT": 2, "SCHEME": "unified Noah land-surface model", "REF": "" },\
-        "3" : {"OPT": 3, "SCHEME": "RUC land-surface model", "REF": "" },\
-        "4" : {"OPT": 4, "SCHEME": "Noah-MP land-surface model (additional options under the &noah_mp section)", "REF": "" },\
-        "5" : {"OPT": 5, "SCHEME": "CLM4 (Community Land Model Version 4)", "REF": "" },\
-        "7" : {"OPT": 7, "SCHEME": "Pleim-Xiu scheme (ARW only)", "REF": "" },\
-        "8" : {"OPT": 8, "SCHEME": "SSiB land-surface model (ARW only).", "DESCRIPTION": "works with ra_lw_physics = 1, 3, or 4, and ra_sw_physics = 1, 3, or 4", "OPT_RA_PHYSIC" : [1, 3, 4 ],  "REF": "" }}
-
-#    DIC_ = {\
-#        "" : {"OPT": , "SCHEME": "", "REF": "" },\
-#        "" : {"OPT": , "SCHEME": "", "REF": "" }}
-
-class NamelistCreater:
+class Namelist_creator:
     """ 
 
     """
@@ -421,7 +173,7 @@ class NamelistCreater:
 
         # Metgrid
         self.DIC_metgrid_common_para = {\
-            "fg_name"                          : {"VALUE": "FILE"           , "DATA_TYPE": "STR", "ARR_TYPE" :"S",\
+            "fg_name"                          : {"VALUE": ["FILE"]         , "DATA_TYPE": "STR", "ARR_TYPE" :"N",\
                                                                               "STR_FMT" : "\'{0:s}\',"              },
             "constants_name"                   : {"VALUE": "./TAVGSFC"      , "DATA_TYPE": "STR", "ARR_TYPE" :"S",\
                                                                               "STR_FMT" : "\'{0:s}\',"              },
@@ -703,6 +455,13 @@ class NamelistCreater:
                     else:
                         self.FILE.write(DIC_DATA_TYPE_STR[DIC_in[ARR_item]["DATA_TYPE"]].format(DIC_in[ARR_item]["VALUE"][d]))
 
+            elif DIC_in[ARR_item]["ARR_TYPE"] == "N":
+                # the ARR_TYPE as multi input number but same all in a row
+                for d in range( len(DIC_in[ARR_item]["VALUE"]) ): 
+                    if DIC_in[ARR_item]["DATA_TYPE"] == "BLN":
+                        self.FILE.write(DIC_DATA_TYPE_STR[DIC_in[ARR_item]["DATA_TYPE"]].format(self.BLN2WRFSTR(DIC_in[ARR_item]["VALUE"])))
+                    else:
+                        self.FILE.write(DIC_DATA_TYPE_STR[DIC_in[ARR_item]["DATA_TYPE"]].format(DIC_in[ARR_item]["VALUE"][d]))
             elif DIC_in[ARR_item]["ARR_TYPE"] == "P":
             # the ARR_TYPE as multi input number but must be user specific
                 if len(self.DIC_user[ARR_item]["VALUE"]) == 1:
