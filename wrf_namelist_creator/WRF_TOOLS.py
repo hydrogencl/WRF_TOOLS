@@ -27,9 +27,10 @@ This main program body contains following:
 class Executors:
 
     def __init__(self):
-        self.strFolder_ROOT        = "."
+        self.strFolder_ROOT        = str(os.getcwd())
         self.strFolder_WPS         = "{}/WPS".format(self.strFolder_ROOT)
         self.strFolder_WRF         = "{}/WRF".format(self.strFolder_ROOT)
+        self.strFolder_RUN         = "{}/WRF/run".format(self.strFolder_ROOT)
         self.strFolder_GRIB        = "./Path/To/GRIB"
         self.Interval_Hour         = 3
         self.strGribLinkName       = 'GRIBFILE'
@@ -58,6 +59,14 @@ class Executors:
     def run_metgrid(self):
         os.chdir(self.strFolder_WPS)
         run(["{0:s}/metgrid.exe".format(self.strFolder_WPS)])
+
+    def run_real(self):
+        os.chdir(self.strFolder_RUN)
+        run(["{0:s}/main/real.exe"   .format(self.strFolder_WRF)])
+
+    def run_wrf(self):
+        os.chdir(self.strFolder_RUN)
+        run(["{0:s}/main/wrf.exe"    .format(self.strFolder_WRF)])
 
     def run_calc_ecmwf_p(self):
         os.chdir(self.strFolder_WPS)
@@ -287,6 +296,7 @@ class NamelistCreater:
     IF_ensemble_run           = False
     # Others:
     STR_DIR="./"
+    STR_RUNDIR="./run"
 
     def __init__(self, STR_wrf_namelist="namelist.input", STR_wps_namelist="namelist.wps", STR_DIR="./", debug_in = False):
         print("Start the namelist creator by Python")
@@ -341,11 +351,11 @@ class NamelistCreater:
 
         # ARR of WRFs
 
-        self.ARR_time_control = ['run_days', 'run_hours', 'run_minutes', 'run_seconds', 'start_year', 'start_month', 'start_day', 'start_hour', 'start_minute', 'start_second', 'end_year', 'end_month', 'end_day', 'end_hour', 'end_minute', 'end_second', 'interval_seconds', 'input_from_file', 'history_interval', 'history_outname', 'bdy_inname', 'input_inname', 'frames_per_outfile', 'auxhist1_outname', 'auxhist2_outname', 'auxhist1_interval', 'auxhist2_interval', 'frames_per_auxhist1', 'frames_per_auxhist2', 'aux1_time', 'aux2_time', 'interpolation_time', 'interpolation_number', 'restart', 'restart_interval', 'override_restart_timers', 'io_form_history', 'io_form_restart', 'io_form_input', 'io_form_boundary', 'debug_level', 'io_form_auxinput2', 'io_form_auxhist1', 'io_form_auxhist2', 'auxinput1_inname']
+        self.ARR_time_control = ['run_days', 'run_hours', 'run_minutes', 'run_seconds', 'start_year', 'start_month', 'start_day', 'start_hour', 'start_minute', 'start_second', 'end_year', 'end_month', 'end_day', 'end_hour', 'end_minute', 'end_second', 'interval_seconds', 'input_from_file', 'history_interval', 'history_outname', 'bdy_inname', 'input_inname', 'frames_per_outfile', 'auxhist1_outname', 'restart', 'restart_interval', 'override_restart_timers', 'io_form_history', 'io_form_restart', 'io_form_input', 'io_form_boundary', 'debug_level', 'auxinput1_inname']
 
         self.ARR_domains     = ['time_step', 'time_step_fract_num', 'time_step_fract_den', 'max_dom', 'e_we', 'e_sn', 'e_vert', 'p_top_requested', 'num_metgrid_levels', 'num_metgrid_soil_levels', 'dx', 'dy', 'grid_id', 'parent_id', 'i_parent_start', 'j_parent_start', 'parent_grid_ratio', 'feedback', 'use_adaptive_time_step', 'step_to_output_time', 'target_cfl', 'max_step_increase_pct', 'starting_time_step', 'max_time_step', 'min_time_step', 'adaptation_domain', 'interp_type', 'smooth_option', 'sfcp_to_sfcp']
 
-        self.ARR_physics     = ['mp_physics', 'ra_lw_physics', 'ra_sw_physics', 'sf_sfclay_physics', 'sf_surface_physics', 'bl_pbl_physics', 'cu_physics', 'radt', 'bldt', 'cudt', 'isftcflx', 'isfflx', 'ifsnow', 'icloud', 'surface_input_source', 'num_soil_layers', 'sf_urban_physics', 'maxiens', 'maxens', 'maxens2', 'maxens3', 'ensdim', 'topo_wind', 'num_land_cat', 'ysu_st']
+        self.ARR_physics     = ['mp_physics', 'ra_lw_physics', 'ra_sw_physics', 'sf_sfclay_physics', 'sf_surface_physics', 'bl_pbl_physics', 'cu_physics', 'radt', 'bldt', 'cudt', 'isftcflx', 'isfflx', 'ifsnow', 'icloud', 'surface_input_source', 'num_soil_layers', 'sf_urban_physics', 'maxiens', 'maxens', 'maxens2', 'maxens3', 'ensdim', 'topo_wind', 'num_land_cat']
 
         self.ARR_dynamics    = ['w_damping', 'diff_opt', 'km_opt', 'diff_6th_opt', 'diff_6th_factor', 'time_step_sound', 'base_temp', 'damp_opt', 'dampcoef', 'khdif', 'kvdif', 'non_hydrostatic', 'moist_adv_opt', 'scalar_adv_opt']
 
@@ -476,7 +486,7 @@ class NamelistCreater:
             "end_second"                       : { "VALUE":  0           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"P"},
             "interval_seconds"                 : { "VALUE":  10800       , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
             "input_from_file"                  : { "VALUE":  True        , "DATA_TYPE" : "BLN" , "ARR_TYPE" :"M"},
-            "history_interval"                 : { "VALUE":  60          , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
+            "history_interval"                 : { "VALUE":  60           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
             "history_outname"                  : { "VALUE":  'wrfout'      , "DATA_TYPE" : "STR" , "ARR_TYPE" :"S",\
                                                    "STR_FMT" : "\'{0:s}_d<domain>{2:s}{1:s}\',"},
             "bdy_inname"                       : { "VALUE":  'wrfbdy'      , "DATA_TYPE" : "STR" , "ARR_TYPE" :"S",\
@@ -494,8 +504,8 @@ class NamelistCreater:
                                                    "STR_FMT" : "\'{0:s}_d<domain>{2:s}{1:s}\',"},
             "auxhist1_interval"                : { "VALUE":  15          , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
             "auxhist2_interval"                : { "VALUE":  60          , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
-            "frames_per_auxhist1"              : { "VALUE":  1000        , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
-            "frames_per_auxhist2"              : { "VALUE":  1000        , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
+            "frames_per_auxhist1"              : { "VALUE":   1000       , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
+            "frames_per_auxhist2"              : { "VALUE":   1000       , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
             "aux1_time"                        : { "VALUE":  15          , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
             "aux2_time"                        : { "VALUE":  60          , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
             "interpolation_time"               : { "VALUE":  10          , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
@@ -520,8 +530,8 @@ class NamelistCreater:
             "time_step_fract_num"              : { "VALUE":  0           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
             "time_step_fract_den"              : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
             "max_dom"                          : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"P"},
-            "e_we"                             : { "VALUE":  180         , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
-            "e_sn"                             : { "VALUE":  180         , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
+            "e_we"                             : { "VALUE":  180         , "DATA_TYPE" : "INT" , "ARR_TYPE" :"P"},
+            "e_sn"                             : { "VALUE":  180         , "DATA_TYPE" : "INT" , "ARR_TYPE" :"P"},
             "e_vert"                           : { "VALUE":  50          , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
             "p_top_requested"                  : { "VALUE":  5000        , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
             "num_metgrid_levels"               : { "VALUE":  42          , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
@@ -536,11 +546,11 @@ class NamelistCreater:
             "feedback"                         : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
             "use_adaptive_time_step"           : { "VALUE":  True        , "DATA_TYPE" : "BLN" , "ARR_TYPE" :"S"},
             "step_to_output_time"              : { "VALUE":  False       , "DATA_TYPE" : "BLN" , "ARR_TYPE" :"S"},
-            "target_cfl"                       : { "VALUE":  1.2         , "DATA_TYPE" : "FLT" , "ARR_TYPE" :"M"},
-            "max_step_increase_pct"            : { "VALUE":  5           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
-            "starting_time_step"               : { "VALUE":  20          , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
-            "max_time_step"                    : { "VALUE":  100         , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
-            "min_time_step"                    : { "VALUE":  -1          , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
+            "target_cfl"                       : { "VALUE":   1.2        , "DATA_TYPE" : "FLT" , "ARR_TYPE" :"M"},
+            "max_step_increase_pct"            : { "VALUE":   5          , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
+            "starting_time_step"               : { "VALUE":  [ 24,12]    , "DATA_TYPE" : "INT" , "ARR_TYPE" :"N"},
+            "max_time_step"                    : { "VALUE":  [144,24]    , "DATA_TYPE" : "INT" , "ARR_TYPE" :"N"},
+            "min_time_step"                    : { "VALUE":  [-1,-1]     , "DATA_TYPE" : "INT" , "ARR_TYPE" :"N"},
             "interp_type"                      : { "VALUE":  2           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
             "adaptation_domain"                : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
             "smooth_option"                    : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
@@ -554,8 +564,8 @@ class NamelistCreater:
             "sf_sfclay_physics"                : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
             "sf_surface_physics"               : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
             "bl_pbl_physics"                   : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
-            "cu_physics"                       : { "VALUE":  [  1,  0 ]  , "DATA_TYPE" : "INT" , "ARR_TYPE" :"A"},
-            "radt"                             : { "VALUE":  [ 20,  6 ]  , "DATA_TYPE" : "INT" , "ARR_TYPE" :"A"},
+            "cu_physics"                       : { "VALUE":  [  1,  0 ]  , "DATA_TYPE" : "INT" , "ARR_TYPE" :"N"},
+            "radt"                             : { "VALUE":  [ 20,  6 ]  , "DATA_TYPE" : "INT" , "ARR_TYPE" :"N"},
             "bldt"                             : { "VALUE":  0           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
             "cudt"                             : { "VALUE":  0           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
             "isftcflx"                         : { "VALUE":  0           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
@@ -597,8 +607,8 @@ class NamelistCreater:
             "spec_bdy_width"                   : { "VALUE":  5             , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
             "spec_zone"                        : { "VALUE":  1             , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
             "relax_zone"                       : { "VALUE":  4             , "DATA_TYPE" : "INT" , "ARR_TYPE" :"S"},
-            "specified"                        : { "VALUE":  [True ,False] , "DATA_TYPE" : "BLN" , "ARR_TYPE" :"A"},
-            "nested"                           : { "VALUE":  [False, True] , "DATA_TYPE" : "BLN" , "ARR_TYPE" :"A"}}
+            "specified"                        : { "VALUE":  [True ,False] , "DATA_TYPE" : "BLN" , "ARR_TYPE" :"N"},
+            "nested"                           : { "VALUE":  [False, True] , "DATA_TYPE" : "BLN" , "ARR_TYPE" :"N"}}
 
         #       NAMELIST_QUILT
         self.DIC_namelist_quilt_common_para = {\
@@ -713,7 +723,7 @@ class NamelistCreater:
                     if DIC_in[ARR_item]["DATA_TYPE"] == "BLN":
                         self.FILE.write(DIC_DATA_TYPE_STR[DIC_in[ARR_item]["DATA_TYPE"]].format(self.BLN2WRFSTR(DIC_in[ARR_item]["VALUE"])))
                     else:
-                        self.FILE.write(DIC_DATA_TYPE_STR[DIC_in[ARR_item]["DATA_TYPE"]].format(DIC_in[ARR_item]["VALUE"][d]))
+                        self.FILE.write(DIC_DATA_TYPE_STR[DIC_in[ARR_item]["DATA_TYPE"]].format(DIC_in[ARR_item]["VALUE"]))
 
             elif DIC_in[ARR_item]["ARR_TYPE"] == "N":
                 # the ARR_TYPE as multi input number but same all in a row
@@ -766,19 +776,16 @@ class NamelistCreater:
         self.FILE.write("&metgrid\n")
         self.write_namelist(self.DIC_metgrid_common_para, self.ARR_metgrid)
         self.FILE.write("/\n")
-
-
-
         self.FILE.close()
         return 0
-
-
  
-    def create_a_namelist(self):
+    def create_wrf_namelist(self, STR_DIR=""):
+        if STR_DIR == "":
+            STR_DIR = self.STR_DIR
         if self.IF_ensemble_run :
-            self.FILE     = open("{0:s}/{1:s}{2:05d}".format(self.STR_DIR, self.STR_wrf_namelist, self.NUM_ensemble_member), "w")
+            self.FILE     = open("{0:s}/{1:s}{2:05d}".format(STR_DIR, self.STR_wrf_namelist, self.NUM_ensemble_member), "w")
         else: 
-            self.FILE     = open("{0:s}/{1:s}".format(self.STR_DIR, self.STR_wrf_namelist), "w")
+            self.FILE     = open("{0:s}/{1:s}".format(STR_DIR, self.STR_wrf_namelist), "w")
 
         print("starting creating the namelist: {0:s}".format(self.STR_wrf_namelist))
         self.FILE.write("&time_control\n")
