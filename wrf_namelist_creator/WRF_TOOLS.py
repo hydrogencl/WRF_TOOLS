@@ -547,7 +547,7 @@ class NamelistCreater:
             "use_adaptive_time_step"           : { "VALUE":  True        , "DATA_TYPE" : "BLN" , "ARR_TYPE" :"S"},
             "step_to_output_time"              : { "VALUE":  False       , "DATA_TYPE" : "BLN" , "ARR_TYPE" :"S"},
             "target_cfl"                       : { "VALUE":   1.2        , "DATA_TYPE" : "FLT" , "ARR_TYPE" :"M"},
-            "max_step_increase_pct"            : { "VALUE":   5          , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
+            "max_step_increase_pct"            : { "VALUE":   5          , "DATA_TYPE" : "INT" , "ARR_TYPE" :"N"},
             "starting_time_step"               : { "VALUE":  [ 24,12]    , "DATA_TYPE" : "INT" , "ARR_TYPE" :"N"},
             "max_time_step"                    : { "VALUE":  [144,24]    , "DATA_TYPE" : "INT" , "ARR_TYPE" :"N"},
             "min_time_step"                    : { "VALUE":  [-1,-1]     , "DATA_TYPE" : "INT" , "ARR_TYPE" :"N"},
