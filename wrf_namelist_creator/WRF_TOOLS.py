@@ -382,10 +382,10 @@ class NamelistCreater:
                                                                               "STR_FMT" : "\'{0:s}\',"},
             "debug_level"                      : {"VALUE":   0              , "DATA_TYPE": "INT", "ARR_TYPE" :"S"   },
             "start_date"                       : {"VALUE":  ["2006-08-16_12:00:00", "2006-08-16_12:00:00"],\
-                                                                              "DATA_TYPE": "STR", "ARR_TYPE" :"M",\
+                                                                              "DATA_TYPE": "STR", "ARR_TYPE" :"N",\
                                                                               "STR_FMT" : "\'{0:s}\',"},
             "end_date"                         : {"VALUE":  ["2006-08-16_18:00:00", "2006-08-16_18:00:00"],\
-                                                                              "DATA_TYPE": "STR", "ARR_TYPE" :"M",\
+                                                                              "DATA_TYPE": "STR", "ARR_TYPE" :"N",\
                                                                               "STR_FMT" : "\'{0:s}\',"},
             "start_year"                       : {"VALUE":  [ 0, 0         ], "DATA_TYPE": "INT", "ARR_TYPE" :"P"   },
             "start_month"                      : {"VALUE":  [ 0, 0         ], "DATA_TYPE": "INT", "ARR_TYPE" :"P"   },
@@ -411,7 +411,7 @@ class NamelistCreater:
             "s_sn"                             : {"VALUE":  [ 0, 0         ], "DATA_TYPE": "INT", "ARR_TYPE" :"P"   },
             "e_sn"                             : {"VALUE":  [ 0, 0         ], "DATA_TYPE": "INT", "ARR_TYPE" :"P"   },
             "geog_data_res"                    : {"VALUE":  ['modis_30s+2m','modis_30s','modis_30s']   ,\
-                                                                              "DATA_TYPE": "STR", "ARR_TYPE" :"M",\
+                                                                              "DATA_TYPE": "STR", "ARR_TYPE" :"N",\
                                                                               "STR_FMT" : "\'{0:s}\',"              },
             "dx"                               : {"VALUE":  15000           , "DATA_TYPE": "INT", "ARR_TYPE" :"P"   },
             "dy"                               : {"VALUE":  15000           , "DATA_TYPE": "INT", "ARR_TYPE" :"P"   },
@@ -429,7 +429,7 @@ class NamelistCreater:
             "opt_geogrid_tbl_path"             : {"VALUE": 'geogrid'       ,  "DATA_TYPE": "STR", "ARR_TYPE" :"S",\
                                                                               "STR_FMT" : "\'{0:s}\',"},
             "geog_data_res"                    : {"VALUE": ['usgs_lakes+10m','usgs_lakes+2m']   ,\
-                                                                              "DATA_TYPE": "STR", "ARR_TYPE" :"M",\
+                                                                              "DATA_TYPE": "STR", "ARR_TYPE" :"N",\
                                                                               "STR_FMT" : "\'{0:s}\',"}}
 
         # Ungrib
@@ -760,8 +760,11 @@ class NamelistCreater:
 
             self.FILE.write("\n")
 
-    def create_wps_namelist(self):
-        self.FILE     = open("{0:s}/{1:s}".format(self.STR_DIR, self.STR_wps_namelist), "w")
+    def create_wps_namelist(self, STR_DIR=""):
+        if STR_DIR == "":
+            STR_DIR = self.STR_DIR
+
+        self.FILE     = open("{0:s}/{1:s}".format(STR_DIR, self.STR_wps_namelist), "w")
         print("Starting creating the namelist for wps: {0:s}".format(self.STR_wps_namelist))
         print("starting creating the namelist: {0:s}".format(self.STR_wps_namelist))
         self.FILE.write("&share\n")
