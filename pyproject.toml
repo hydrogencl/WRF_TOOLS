@@ -3,13 +3,13 @@ requires = ["setuptools>=55.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "Module_Checker"
-version = "0.8.0"
+name = "WRF_TOOLS_Py"
+version = "0.9.0"
 authors = [
   { name="Y.-S. Lu", email="hydrogencl@gmail.com"},
 ]
-description = """The package to check is the module exists. The test files
-                 are used to cope with pytest.
+description = """This tools contains a python module to work on the namelist,
+                 which is loosly based on the WRF 4.1.1. 
               """
 readme = "README.md"
 license = { file="LICENSE" }
