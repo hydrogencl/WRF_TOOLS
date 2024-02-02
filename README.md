@@ -8,6 +8,7 @@ The file `example.py` is a very simple example for you
 
  * What to write to activate the modulde
  * How to set the physics
+ * Example for large ensemble simulation
 
 ### Initialing 
 `import WRF_NAMELIST_CREATOR as WNC`
