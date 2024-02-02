@@ -2,6 +2,8 @@
 
 To creating WRF namelist in the Object-Oriented manner. 
 Test
+test
+Dummy 420
 
 ## Usage Example:
 
