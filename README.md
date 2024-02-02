@@ -1,9 +1,7 @@
 # WRF_TOOLS
 
 To creating WRF namelist in the Object-Oriented manner. 
-Test
-test
-Dummy 420
+Dummy 422
 
 ## Usage Example:
 
