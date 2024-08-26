@@ -1,6 +1,7 @@
 # WRF_TOOLS
 
 To creating WRF namelist in the Object-Oriented manner. 
+Need to be updated but still usefull at this moment. 
 
 ## Usage Example:
 
