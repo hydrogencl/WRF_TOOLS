@@ -44,3 +44,7 @@ The file `example.py` is a very simple example for you
    This option will be only useful when using this version of WRF. 
    Also this is a good example to setup additional namelist for specific version fo WRF. 
 
+## Future plans:
+ - Adding the support for yaml files
+ - unit-testing
+
