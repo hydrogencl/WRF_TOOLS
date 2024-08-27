@@ -2,6 +2,7 @@
 
 To creating WRF namelist in the Object-Oriented manner. 
 Need to be updated but still usefull at this moment. 
+Testing with the Buildbot now.
 
 ## Usage Example:
 
