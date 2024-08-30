@@ -1,5 +1,6 @@
 description: 
   - This is the test for the yaml for esm-buildbot
+  - Test on 30.08
 
 test:
   - This is a test for buildbot
