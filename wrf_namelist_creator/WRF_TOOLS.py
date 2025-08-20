@@ -97,7 +97,8 @@ class Tools:
             DAYS    = ARR_TIME_IN[0] * sum(ARR_DAY_LIM) + ARR_TIME_IN[1] * NUM_MON + ARR_TIME_IN[2]
         HOURS   = DAYS * 24 + ARR_TIME_IN[3]
         MINUTES = HOURS * 60 + ARR_TIME_IN[4] 
-        return {"DAYS": DAYS, "HOURS": HOURS, "MINUTES": MINUTES }
+        SECONDS = MINUTES * 60
+        return {"DAYS": DAYS, "HOURS": HOURS, "MINUTES": MINUTES, "SECONDS": SECONDS  }
 
     def calendar_cal(ARR_START_TIME, ARR_INTERVAL, ARR_END_TIME_IN=[0, 0, 0, 0, 0, 0.0], IF_LEAP=False):
         """Calculaing the Data and Time base on the intervals 
