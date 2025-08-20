@@ -1,7 +1,8 @@
 # WRF_TOOLS
 
 To creating WRF namelist in the Object-Oriented manner. 
-Dummy 422
+Need to be updated but still usefull at this moment. 
+Testing with the Buildbot now.
 
 ## Usage Example:
 
@@ -44,4 +45,8 @@ The file `example.py` is a very simple example for you
    `NCC.IF_ensemble_run` to activate the ensemble simulation namelist for `ESIAS-met`, which an ensemble version of WRF by Rheinisches Institut für Umweltforschung an der Universität zu Köln and IEK-8 Forschungszentrum Juelich. 
    This option will be only useful when using this version of WRF. 
    Also this is a good example to setup additional namelist for specific version fo WRF. 
+
+## Future plans:
+ - Adding the support for yaml files
+ - unit-testing
 
