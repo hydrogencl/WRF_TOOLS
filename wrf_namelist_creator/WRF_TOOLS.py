@@ -38,10 +38,14 @@ class Executors:
         self.strLinkVtableName     = 'Vtable'
         self.strTargetVtableName   = 'Vtable.GFS'
         self.input_global          = 'GFS'
+        self.if_modulizedExec      = False
 
     def run_geogrid(self):
         os.chdir(self.strFolder_WPS)
-        run(["{0:s}/geogrid.exe".format(self.strFolder_WPS)])
+        if self.if_modulizedExec:
+            run(["geogrid.exe"])
+        else:
+            run(["{0:s}/geogrid.exe".format(self.strFolder_WPS)])
 
     def run_ungrib(self, input_global=None):
         os.chdir(self.strFolder_WPS)
@@ -53,24 +57,39 @@ class Executors:
             print("There is no Vtable as:{0:s}".format(self.strLinkVtableName))
         os.symlink("{0:s}/{1:s}".format(self.strFolderVTable, self.strTargetVtableName), 
                    "{0:s}/{1:s}".format("./", self.strLinkVtableName))
-        run(["{0:s}/ungrib.exe".format(self.strFolder_WPS)])
+        if self.if_modulizedExec:
+            run(["ungrib.exe"])
+        else:
+            run(["{0:s}/ungrib.exe".format(self.strFolder_WPS)])
         # check which type of input
 
     def run_metgrid(self):
         os.chdir(self.strFolder_WPS)
-        run(["{0:s}/metgrid.exe".format(self.strFolder_WPS)])
+        if self.if_modulizedExec:
+            run(["geogrid.exe"])
+        else:
+            run(["{0:s}/metgrid.exe".format(self.strFolder_WPS)])
 
     def run_real(self):
         os.chdir(self.strFolder_RUN)
-        run(["{0:s}/main/real.exe"   .format(self.strFolder_WRF)])
+        if self.if_modulizedExec:
+            run(["geogrid.exe"])
+        else:
+            run(["{0:s}/main/real.exe"   .format(self.strFolder_WRF)])
 
     def run_wrf(self):
         os.chdir(self.strFolder_RUN)
-        run(["{0:s}/main/wrf.exe"    .format(self.strFolder_WRF)])
+        if self.if_modulizedExec:
+            run(["geogrid.exe"])
+        else:
+            run(["{0:s}/main/wrf.exe"    .format(self.strFolder_WRF)])
 
     def run_calc_ecmwf_p(self):
         os.chdir(self.strFolder_WPS)
-        run(["{0:s}/calc_ecmwf_p.exe".format(self.strFolder_WPS)])
+        if self.if_modulizedExec:
+            run(["geogrid.exe"])
+        else:
+            run(["{0:s}/calc_ecmwf_p.exe".format(self.strFolder_WPS)])
 
     def link_ungrib(self, arrFiles=[]): 
         # Remove the old grib link
@@ -83,8 +102,7 @@ class Executors:
             strIndex = Tools.make_alphabet_index(ind)
             os.symlink(files, "./{0:s}.{1:s}".format(self.strGribLinkName, strIndex, self.strFolder_WRF))
             print("done link: {0:s}.{1:s} --> {2:s}".format(self.strGribLinkName, strIndex, files))
-        
-
+        os.chdir(self.strFolder_ROOT) 
 class Tools:
     def run_time_cal(ARR_TIME_IN, IF_LEAP=False, NUM_MON=0):
         if IF_LEAP == True: 
@@ -764,7 +782,7 @@ class NamelistCreater:
     def create_wps_namelist(self, STR_DIR=""):
         if STR_DIR == "":
             STR_DIR = self.STR_DIR
-
+        print("Working on here: {0:s}".format(os.path.abspath(STR_DIR)))
         self.FILE     = open("{0:s}/{1:s}".format(STR_DIR, self.STR_wps_namelist), "w")
         print("Starting creating the namelist for wps: {0:s}".format(self.STR_wps_namelist))
         print("starting creating the namelist: {0:s}".format(self.STR_wps_namelist))
