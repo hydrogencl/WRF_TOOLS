@@ -46,6 +46,7 @@ class Executors:
             run(["geogrid.exe"])
         else:
             run(["{0:s}/geogrid.exe".format(self.strFolder_WPS)])
+        os.chdir(self.strFolder_ROOT) 
 
     def run_ungrib(self, input_global=None):
         os.chdir(self.strFolder_WPS)
@@ -61,14 +62,16 @@ class Executors:
             run(["ungrib.exe"])
         else:
             run(["{0:s}/ungrib.exe".format(self.strFolder_WPS)])
+        os.chdir(self.strFolder_ROOT) 
         # check which type of input
 
     def run_metgrid(self):
         os.chdir(self.strFolder_WPS)
         if self.if_modulizedExec:
-            run(["geogrid.exe"])
+            run(["metgrid.exe"])
         else:
             run(["{0:s}/metgrid.exe".format(self.strFolder_WPS)])
+        os.chdir(self.strFolder_ROOT) 
 
     def run_real(self):
         os.chdir(self.strFolder_RUN)
@@ -76,6 +79,7 @@ class Executors:
             run(["geogrid.exe"])
         else:
             run(["{0:s}/main/real.exe"   .format(self.strFolder_WRF)])
+        os.chdir(self.strFolder_ROOT) 
 
     def run_wrf(self):
         os.chdir(self.strFolder_RUN)
@@ -83,11 +87,12 @@ class Executors:
             run(["geogrid.exe"])
         else:
             run(["{0:s}/main/wrf.exe"    .format(self.strFolder_WRF)])
+        os.chdir(self.strFolder_ROOT) 
 
     def run_calc_ecmwf_p(self):
         os.chdir(self.strFolder_WPS)
         if self.if_modulizedExec:
-            run(["geogrid.exe"])
+            run(["calc_ecmwf_p.exe"])
         else:
             run(["{0:s}/calc_ecmwf_p.exe".format(self.strFolder_WPS)])
 
@@ -566,7 +571,7 @@ class NamelistCreater:
             "use_adaptive_time_step"           : { "VALUE":  True        , "DATA_TYPE" : "BLN" , "ARR_TYPE" :"S"},
             "step_to_output_time"              : { "VALUE":  False       , "DATA_TYPE" : "BLN" , "ARR_TYPE" :"S"},
             "target_cfl"                       : { "VALUE":   1.2        , "DATA_TYPE" : "FLT" , "ARR_TYPE" :"M"},
-            "max_step_increase_pct"            : { "VALUE":   5          , "DATA_TYPE" : "INT" , "ARR_TYPE" :"N"},
+            "max_step_increase_pct"            : { "VALUE":  [  5, 5]    , "DATA_TYPE" : "INT" , "ARR_TYPE" :"N"},
             "starting_time_step"               : { "VALUE":  [ 24,12]    , "DATA_TYPE" : "INT" , "ARR_TYPE" :"N"},
             "max_time_step"                    : { "VALUE":  [144,24]    , "DATA_TYPE" : "INT" , "ARR_TYPE" :"N"},
             "min_time_step"                    : { "VALUE":  [-1,-1]     , "DATA_TYPE" : "INT" , "ARR_TYPE" :"N"},
@@ -577,12 +582,12 @@ class NamelistCreater:
 
         # PHYSICS
         self.DIC_physics_common_para = {\
-            "mp_physics"                       : { "VALUE":  6           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
-            "ra_lw_physics"                    : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
-            "ra_sw_physics"                    : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
-            "sf_sfclay_physics"                : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
-            "sf_surface_physics"               : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
-            "bl_pbl_physics"                   : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
+            "mp_physics"                       : { "VALUE":  6           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"N"},
+            "ra_lw_physics"                    : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"N"},
+            "ra_sw_physics"                    : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"N"},
+            "sf_sfclay_physics"                : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"N"},
+            "sf_surface_physics"               : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"N"},
+            "bl_pbl_physics"                   : { "VALUE":  1           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"N"},
             "cu_physics"                       : { "VALUE":  [  1,  0 ]  , "DATA_TYPE" : "INT" , "ARR_TYPE" :"N"},
             "radt"                             : { "VALUE":  [ 20,  6 ]  , "DATA_TYPE" : "INT" , "ARR_TYPE" :"N"},
             "bldt"                             : { "VALUE":  0           , "DATA_TYPE" : "INT" , "ARR_TYPE" :"M"},
